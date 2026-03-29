@@ -1,14 +1,14 @@
 package com.itdept.it.dto;
 
 import com.itdept.it.model.Role;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class AuthResponse {
     private String token;
     private Role role;
+    private String name;
+    private String email;
 
     public String getToken() {
         return token;
@@ -31,6 +31,29 @@ public class AuthResponse {
         this.role = role;
     }
 
+    public AuthResponse(String token, Role role, String name, String email) {
+        this.token = token;
+        this.role = role;
+        this.name = name;
+        this.email = email;
+    }
+
     public AuthResponse() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

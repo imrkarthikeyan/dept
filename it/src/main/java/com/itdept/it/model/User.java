@@ -9,17 +9,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 
 @Entity
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "users", uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 public class User {
     @Id
@@ -33,6 +29,7 @@ public class User {
     private Role      role;
     private LocalDate lastPostDate;
     private int streak = 0;
+    private int longestStreak = 0;
 
     public int getStreak() {
         return streak;
@@ -40,6 +37,14 @@ public class User {
 
     public void setStreak(int streak) {
         this.streak = streak;
+    }
+
+    public int getLongestStreak() {
+        return longestStreak;
+    }
+
+    public void setLongestStreak(int longestStreak) {
+        this.longestStreak = longestStreak;
     }
     public Long getId() {
         return id;

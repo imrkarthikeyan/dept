@@ -1,14 +1,11 @@
 package com.itdept.it.controller;
 
 import com.itdept.it.dto.BlogResponse;
-import com.itdept.it.model.Blog;
-import com.itdept.it.repository.BlogRepository;
-import com.itdept.it.service.BlogService;
+import com.itdept.it.dto.StudentStatsResponse;
 import com.itdept.it.service.StudentDashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -49,6 +46,18 @@ public class StudentDashboardController {
     @GetMapping("/feed/likes")
     public List<BlogResponse> getFeedByLikes() {
         return studentService.getFeedSortedByLikes();
+    }
+
+    @GetMapping("/liked-blogs")
+    public List<BlogResponse> getLikedBlogs() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return studentService.getLikedBlogs(email);
+    }
+
+    @GetMapping("/stats")
+    public StudentStatsResponse getStudentStats() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return studentService.getStudentStats(email);
     }
 
 

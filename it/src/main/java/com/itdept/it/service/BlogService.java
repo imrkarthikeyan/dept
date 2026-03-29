@@ -6,6 +6,7 @@ import com.itdept.it.dto.BlogRequest;
 import com.itdept.it.dto.BlogResponse;
 import com.itdept.it.model.Blog;
 import com.itdept.it.model.Like;
+import com.itdept.it.model.Role;
 import com.itdept.it.model.User;
 import com.itdept.it.repository.BlogRepository;
 import com.itdept.it.repository.LikeRepository;
@@ -49,6 +50,10 @@ public class BlogService {
             author.setStreak(1); // first post
         }
 
+        if (author.getStreak() > author.getLongestStreak()) {
+            author.setLongestStreak(author.getStreak());
+        }
+
         author.setLastPostDate(today);
         userRepository.save(author);
 
@@ -57,6 +62,10 @@ public class BlogService {
         blog.setContent(request.getContent());
         blog.setAuthor(author);
         blog.setDate(today);
+
+        if (author.getRole() == Role.STAFF || author.getRole() == Role.ADMIN) {
+            blog.setStatus(Blog.Status.APPROVED);
+        }
 
         Blog savedBlog = blogRepository.save(blog);
 
@@ -136,6 +145,7 @@ public class BlogService {
         response.setTitle(blog.getTitle());
         response.setContent(blog.getContent());
         response.setAuthorName(blog.getAuthor().getName());
+        response.setAuthorRole(blog.getAuthor() != null && blog.getAuthor().getRole() != null ? blog.getAuthor().getRole().name() : "UNKNOWN");
         response.setDate(blog.getDate().toString());
         response.setLikesCount(blog.getLikesCount());
         response.setStatus(blog.getStatus());  //new field for status

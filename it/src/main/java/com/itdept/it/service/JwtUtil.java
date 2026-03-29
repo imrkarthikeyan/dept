@@ -1,5 +1,6 @@
 package com.itdept.it.service;
 
+import com.itdept.it.model.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
@@ -18,11 +19,21 @@ public class JwtUtil {
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 24; // 24 hours
 
     public String generateToken(String email) {
-        return Jwts.builder()
+        return generateToken(email, null);
+    }
+
+    public String generateToken(String email, Role role) {
+        JwtBuilder builder = Jwts.builder()
                 .setSubject(email)
                 .setIssuedAt(new Date())
 //                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME));
+
+        if (role != null) {
+            builder.claim("role", role.name());
+        }
+
+        return builder
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -34,5 +45,24 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    public Role extractRole(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        String roleValue = claims.get("role", String.class);
+        if (roleValue == null || roleValue.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Role.valueOf(roleValue);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 }

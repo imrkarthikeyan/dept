@@ -1,5 +1,6 @@
 package com.itdept.it.config;
 
+import com.itdept.it.model.Role;
 import com.itdept.it.model.User;
 import com.itdept.it.repository.UserRepository;
 import com.itdept.it.service.JwtUtil;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import io.jsonwebtoken.JwtException;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -72,24 +74,31 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String email = jwtUtil.extractEmail(token);
+        try {
+            String email = jwtUtil.extractEmail(token);
 
-        if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                Role role = jwtUtil.extractRole(token);
+                if (role == null) {
+                    User user = userRepository.findByEmail(email).orElse(null);
+                    role = user != null ? user.getRole() : null;
+                }
 
-            User user = userRepository.findByEmail(email).orElse(null);
+                if(role != null) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    email,
+                                    null,
+                                    List.of(new SimpleGrantedAuthority(role.name()))
+                            );
 
-            if(user != null) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                email,
-                                null,
-                                List.of(new SimpleGrantedAuthority(user.getRole().name()))
-                        );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (JwtException | IllegalArgumentException ex) {
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

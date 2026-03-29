@@ -9,15 +9,17 @@ public class BlogResponse {
     private String title;
     private String content;
     private String authorName;
+    private String authorRole;
     private String date;
     private int         likesCount;
     private Blog.Status status;
 
-    public BlogResponse(Long id, String title, String content, String authorName, String date, int likesCount, Blog.Status status) {
+    public BlogResponse(Long id, String title, String content, String authorName, String authorRole, String date, int likesCount, Blog.Status status) {
         this.id = id;
         this.title = title;
         this.content = content;
         this.authorName = authorName;
+        this.authorRole = authorRole;
         this.date = date;
         this.likesCount = likesCount;
         this.status = status;
@@ -56,6 +58,14 @@ public class BlogResponse {
 
     public void setAuthorName(String authorName) {
         this.authorName = authorName;
+    }
+
+    public String getAuthorRole() {
+        return authorRole;
+    }
+
+    public void setAuthorRole(String authorRole) {
+        this.authorRole = authorRole;
     }
 
     public String getDate() {

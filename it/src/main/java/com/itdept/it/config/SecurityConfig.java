@@ -3,6 +3,7 @@ package com.itdept.it.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,17 +41,23 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/error").permitAll()
 
-                        // allow all logged-in users to create blog
-                        .requestMatchers("/api/blogs/create").authenticated()
-
-                        // faculty/admin only
-                        .requestMatchers("/api/blogs/all/faculty",
-                                "/api/blogs/*/approve",
-                                "/api/blogs/*/reject",
-                                "/api/blogs/*")
-                        .hasAnyAuthority("STAFF","ADMIN")
+                        // student endpoints - must come before /api/blogs/* rules
                         .requestMatchers("/api/student/**").hasAuthority("STUDENT")
+
+                        // blog creation - any authenticated user
+                        .requestMatchers(HttpMethod.POST, "/api/blogs/create").authenticated()
+
+                        // faculty/admin only - blog management
+                        .requestMatchers(HttpMethod.GET, "/api/blogs/all/faculty").hasAnyAuthority("STAFF","ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/approve").hasAnyAuthority("STAFF","ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/reject").hasAnyAuthority("STAFF","ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/blogs/*").hasAnyAuthority("STAFF","ADMIN")
+
+                        // any authenticated user can like blogs
+                        .requestMatchers(HttpMethod.POST, "/api/blogs/*/like").authenticated()
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

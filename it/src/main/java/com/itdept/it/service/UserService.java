@@ -5,8 +5,10 @@ import com.itdept.it.dto.UserResponse;
 import com.itdept.it.model.User;
 import com.itdept.it.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class UserService {
@@ -40,14 +42,14 @@ public class UserService {
     public AuthResponse login(String email, String password){
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password"));
 
         if(!passwordEncoder.matches(password, user.getPassword())){
-            throw new RuntimeException("Invalid password");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid email or password");
         }
 
-        String token = jwtUtil.generateToken(email);
+        String token = jwtUtil.generateToken(email, user.getRole());
 
-        return new AuthResponse(token, user.getRole());
+        return new AuthResponse(token, user.getRole(), user.getName(), user.getEmail());
     }
 }
