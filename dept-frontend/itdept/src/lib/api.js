@@ -1,0 +1,40 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
+export async function apiRequest(path, options = {}) {
+    const { token, method = 'GET', body } = options;
+
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {}),
+    };
+
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+        method,
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+    });
+
+    const raw = await response.text();
+    let data = null;
+
+    if (raw) {
+        try {
+            data = JSON.parse(raw);
+        } catch {
+            data = raw;
+        }
+    }
+
+    if (!response.ok) {
+        const message =
+            (data && typeof data === 'object' && (data.message || data.error)) ||
+            (typeof data === 'string' ? data : '') ||
+            `Request failed with status ${response.status}`;
+        const error = new Error(message);
+        error.status = response.status;
+        throw error;
+    }
+
+    return data;
+}

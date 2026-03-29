@@ -1,0 +1,100 @@
+/* .admission-section {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(0, 91, 187, 0.08), transparent 40%),
+        radial-gradient(circle at 0% 100%, rgba(255, 107, 53, 0.08), transparent 40%),
+        #ffffff;
+}
+
+.admission-content {
+    order: 2;
+}
+
+@media (max-width: 1024px) {
+    .admission-content {
+        order: 1;
+    }
+}
+
+.admission-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    animation: admissionRise 580ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.admission-image-container {
+    order: 1;
+}
+
+@media (max-width: 1024px) {
+    .admission-image-container {
+        order: 2;
+    }
+}
+
+.admission-input {
+    transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+}
+
+.admission-input:hover {
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+}
+
+.admission-input:focus {
+    background-color: #ffffff;
+}
+
+.admission-btn {
+    position: relative;
+    overflow: hidden;
+    transform: translateZ(0);
+}
+
+.admission-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.24) 45%, transparent 100%);
+    transform: translateX(-120%);
+    transition: transform 480ms ease;
+}
+
+.admission-btn:hover::before {
+    transform: translateX(120%);
+}
+
+.admission-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px rgba(0, 91, 187, 0.35);
+}
+
+.admission-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+@keyframes admissionRise {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admission-reveal {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+
+    .admission-input,
+    .admission-btn {
+        transition: none;
+    }
+} */

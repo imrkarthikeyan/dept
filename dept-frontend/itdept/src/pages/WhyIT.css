@@ -1,0 +1,123 @@
+/* .whyit-section {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 8% 12%, rgba(255, 107, 53, 0.08), transparent 35%),
+        radial-gradient(circle at 96% 90%, rgba(0, 91, 187, 0.08), transparent 40%),
+        #ffffff;
+}
+
+.whyit-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: whyitRise 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.whyit-image-wrap {
+    display: inline-block;
+    overflow: hidden;
+    border-radius: 1.5rem;
+    border: 5px solid #ff6b35;
+    box-shadow: 0 26px 54px rgba(15, 23, 42, 0.16);
+}
+
+.whyit-image {
+    display: block;
+}
+
+.whyit-item {
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.whyit-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 107, 53, 0.45);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+@keyframes whyitRise {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .whyit-reveal {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+
+    .whyit-item,
+    .whyit-image {
+        transition: none;
+    }
+} */
+
+
+
+.whyit-section {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 8% 12%, rgba(255, 107, 53, 0.08), transparent 35%),
+        radial-gradient(circle at 96% 90%, rgba(0, 91, 187, 0.08), transparent 40%),
+        #ffffff;
+}
+
+.whyit-reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: whyitRise 620ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.whyit-image-wrap {
+    display: block;
+}
+
+.whyit-image {
+    display: block;
+    border: 5px solid #ff6b35; /* Border directly on image */
+    border-radius: 1.5rem;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.15);
+    transition: none; /* No zoom or hover effect */
+}
+
+.whyit-item {
+    transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.whyit-item:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 107, 53, 0.45);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
+}
+
+@keyframes whyitRise {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .whyit-reveal {
+        opacity: 1;
+        transform: none;
+        animation: none;
+    }
+    .whyit-item,
+    .whyit-image {
+        transition: none;
+    }
+}
