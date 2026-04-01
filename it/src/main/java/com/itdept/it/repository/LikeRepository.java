@@ -13,4 +13,5 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     long countByBlog(Blog blog);
     long countByUser(User user);
     List<Like> findByUser(User user);
+    List<Like> findByBlogOrderByIdDesc(Blog blog);
 }

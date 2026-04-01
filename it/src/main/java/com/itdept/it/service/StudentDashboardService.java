@@ -6,6 +6,7 @@ import com.itdept.it.model.Blog;
 import com.itdept.it.model.Like;
 import com.itdept.it.model.User;
 import com.itdept.it.repository.BlogRepository;
+import com.itdept.it.repository.CommentRepository;
 import com.itdept.it.repository.LikeRepository;
 import com.itdept.it.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class StudentDashboardService {
 
     @Autowired
     private LikeRepository likeRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     // Get feed – only approved blogs
     public List<BlogResponse> getApprovedBlogs() {
@@ -116,6 +120,7 @@ public class StudentDashboardService {
         response.setAuthorRole(blog.getAuthor() != null && blog.getAuthor().getRole() != null ? blog.getAuthor().getRole().name() : "UNKNOWN");
         response.setDate(blog.getDate() != null ? blog.getDate().toString() : "");
         response.setLikesCount(blog.getLikesCount());
+        response.setCommentsCount((int) commentRepository.countByBlog(blog));
         response.setStatus(blog.getStatus());
         return response;
     }

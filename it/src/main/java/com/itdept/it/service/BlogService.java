@@ -4,11 +4,16 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import com.itdept.it.dto.BlogRequest;
 import com.itdept.it.dto.BlogResponse;
+import com.itdept.it.dto.CommentRequest;
+import com.itdept.it.dto.CommentResponse;
+import com.itdept.it.dto.LikeResponse;
 import com.itdept.it.model.Blog;
+import com.itdept.it.model.Comment;
 import com.itdept.it.model.Like;
 import com.itdept.it.model.Role;
 import com.itdept.it.model.User;
 import com.itdept.it.repository.BlogRepository;
+import com.itdept.it.repository.CommentRepository;
 import com.itdept.it.repository.LikeRepository;
 import com.itdept.it.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +34,9 @@ public class BlogService {
 
     @Autowired
     private LikeRepository likeRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
 
     // Create blog with streak check
     public BlogResponse createBlog(BlogRequest request, String userEmail) {
@@ -138,6 +146,47 @@ public class BlogService {
         blogRepository.deleteById(blogId);
     }
 
+    public List<CommentResponse> getComments(Long blogId) {
+        Blog blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        return commentRepository.findByBlogOrderByCreatedAtDesc(blog)
+                .stream()
+                .map(this::mapCommentToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public CommentResponse addComment(Long blogId, CommentRequest request, String userEmail) {
+        String content = request != null && request.getContent() != null ? request.getContent().trim() : "";
+        if (content.isEmpty()) {
+            throw new RuntimeException("Comment cannot be empty");
+        }
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Blog blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        Comment comment = new Comment();
+        comment.setBlog(blog);
+        comment.setAuthor(user);
+        comment.setContent(content);
+        comment.setCreatedAt(java.time.LocalDateTime.now());
+
+        Comment savedComment = commentRepository.save(comment);
+        return mapCommentToResponse(savedComment);
+    }
+
+    public List<LikeResponse> getBlogLikes(Long blogId) {
+        Blog blog = blogRepository.findById(blogId)
+                .orElseThrow(() -> new RuntimeException("Blog not found"));
+
+        return likeRepository.findByBlogOrderByIdDesc(blog)
+                .stream()
+                .map(this::mapLikeToResponse)
+                .collect(Collectors.toList());
+    }
 
     private BlogResponse mapToResponse(Blog blog) {
         BlogResponse response = new BlogResponse();
@@ -148,7 +197,32 @@ public class BlogService {
         response.setAuthorRole(blog.getAuthor() != null && blog.getAuthor().getRole() != null ? blog.getAuthor().getRole().name() : "UNKNOWN");
         response.setDate(blog.getDate().toString());
         response.setLikesCount(blog.getLikesCount());
+        response.setCommentsCount((int) commentRepository.countByBlog(blog));
         response.setStatus(blog.getStatus());  //new field for status
+        return response;
+    }
+
+    private CommentResponse mapCommentToResponse(Comment comment) {
+        CommentResponse response = new CommentResponse();
+        response.setId(comment.getId());
+        response.setBlogId(comment.getBlog() != null ? comment.getBlog().getId() : null);
+        response.setContent(comment.getContent());
+        response.setAuthorName(comment.getAuthor() != null ? comment.getAuthor().getName() : "Unknown");
+        response.setAuthorRole(comment.getAuthor() != null && comment.getAuthor().getRole() != null
+                ? comment.getAuthor().getRole().name()
+                : "UNKNOWN");
+        response.setCreatedAt(comment.getCreatedAt() != null ? comment.getCreatedAt().toString() : "");
+        return response;
+    }
+
+    private LikeResponse mapLikeToResponse(Like like) {
+        LikeResponse response = new LikeResponse();
+        response.setId(like.getId());
+        response.setUserName(like.getUser() != null ? like.getUser().getName() : "Unknown");
+        response.setUserRole(like.getUser() != null && like.getUser().getRole() != null
+                ? like.getUser().getRole().name()
+                : "UNKNOWN");
+        response.setUserEmail(like.getUser() != null ? like.getUser().getEmail() : "");
         return response;
     }
 }

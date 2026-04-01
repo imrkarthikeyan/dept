@@ -2,6 +2,9 @@ package com.itdept.it.controller;
 
 import com.itdept.it.dto.BlogRequest;
 import com.itdept.it.dto.BlogResponse;
+import com.itdept.it.dto.CommentRequest;
+import com.itdept.it.dto.CommentResponse;
+import com.itdept.it.dto.LikeResponse;
 import com.itdept.it.service.BlogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,6 +45,22 @@ public class BlogController {
     @GetMapping("/all/faculty")
     public List<BlogResponse> getAllBlogsForFaculty() {
         return blogService.getAllBlogsForFaculty();
+    }
+
+    @GetMapping("/{blogId}/comments")
+    public List<CommentResponse> getBlogComments(@PathVariable Long blogId) {
+        return blogService.getComments(blogId);
+    }
+
+    @PostMapping("/{blogId}/comments")
+    public CommentResponse addComment(@PathVariable Long blogId, @RequestBody CommentRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return blogService.addComment(blogId, request, email);
+    }
+
+    @GetMapping("/{blogId}/likes")
+    public List<LikeResponse> getBlogLikes(@PathVariable Long blogId) {
+        return blogService.getBlogLikes(blogId);
     }
 
     // Faculty: approve blog

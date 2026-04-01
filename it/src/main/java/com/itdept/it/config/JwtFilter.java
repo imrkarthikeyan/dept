@@ -67,8 +67,12 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        String requestPath = request.getRequestURI();
 
         if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if (requestPath.startsWith("/api/student") || requestPath.startsWith("/api/blogs")) {
+                System.err.println("⚠️  No Authorization header for: " + requestPath);
+            }
             filterChain.doFilter(request, response);
             return;
         }
@@ -76,15 +80,20 @@ public class JwtFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
         try {
             String email = jwtUtil.extractEmail(token);
+            System.out.println("✓ JWT email extracted: " + email);
 
             if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 Role role = jwtUtil.extractRole(token);
+                System.out.println("✓ JWT role extracted: " + role);
+                
                 if (role == null) {
                     User user = userRepository.findByEmail(email).orElse(null);
                     role = user != null ? user.getRole() : null;
+                    System.out.println("✓ Role from DB: " + role);
                 }
 
                 if(role != null) {
+                    System.out.println("✓ Setting authority: " + role.name() + " for path: " + requestPath);
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
                                     email,
@@ -95,9 +104,13 @@ public class JwtFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    System.err.println("❌ Role is null for email: " + email);
                 }
             }
         } catch (JwtException | IllegalArgumentException ex) {
+            System.err.println("❌ JWT Exception: " + ex.getMessage());
+            ex.printStackTrace();
             SecurityContextHolder.clearContext();
         }
 

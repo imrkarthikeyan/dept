@@ -12,6 +12,7 @@ public class BlogResponse {
     private String authorRole;
     private String date;
     private int         likesCount;
+    private int commentsCount;
     private Blog.Status status;
 
     public BlogResponse(Long id, String title, String content, String authorName, String authorRole, String date, int likesCount, Blog.Status status) {
@@ -82,6 +83,14 @@ public class BlogResponse {
 
     public void setLikesCount(int likesCount) {
         this.likesCount = likesCount;
+    }
+
+    public int getCommentsCount() {
+        return commentsCount;
+    }
+
+    public void setCommentsCount(int commentsCount) {
+        this.commentsCount = commentsCount;
     }
 
     public Blog.Status getStatus() {
