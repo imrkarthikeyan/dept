@@ -33,6 +33,14 @@ export default function StudentBlogspot() {
     const navigate = useNavigate();
     const session = useMemo(() => getAuthSession(), []);
 
+    // Redirect if not authenticated or not a STUDENT
+    useEffect(() => {
+        if (!session?.token || session?.role !== 'STUDENT') {
+            clearAuthSession();
+            navigate('/login/student', { replace: true });
+        }
+    }, []); // Only check once on mount
+
     const [theme, setTheme] = useState(() => localStorage.getItem('blogspot-theme') || 'light');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
         () => localStorage.getItem('blogspot-sidebar-collapsed') === 'true',
@@ -82,13 +90,6 @@ export default function StudentBlogspot() {
     }, [session]);
 
     useEffect(() => {
-        if (!session?.token || session?.role !== 'STUDENT') {
-            clearAuthSession();
-            navigate('/login/student', { replace: true });
-        }
-    }, [session, navigate]);
-
-    useEffect(() => {
         localStorage.setItem('blogspot-theme', theme);
     }, [theme]);
 
@@ -130,6 +131,17 @@ export default function StudentBlogspot() {
                 safeRequest('/api/student/liked-blogs'),
                 safeRequest('/api/student/streak'),
             ]);
+
+            const authFailure = [myBlogsRes, feedRes, statsRes, likedRes, streakRes].find(
+                (result) => result.status === 'rejected' && (result.reason?.status === 401 || result.reason?.status === 403),
+            );
+
+            if (authFailure) {
+                clearAuthSession();
+                setError('Your session expired or access changed. Please log in again.');
+                navigate('/login/student', { replace: true });
+                return;
+            }
 
             const myBlogsData = myBlogsRes.status === 'fulfilled' && Array.isArray(myBlogsRes.value)
                 ? myBlogsRes.value
@@ -306,6 +318,12 @@ export default function StudentBlogspot() {
                     likingBlogId={likingBlogId}
                     handleSave={handleSave}
                     savedBlogs={savedBlogs}
+                    token={token}
+                    onRefresh={() => loadData(feedSort)}
+                    onAuthError={() => {
+                        clearAuthSession();
+                        navigate('/login/student', { replace: true });
+                    }}
                     theme={theme}
                 />
             );
@@ -319,6 +337,12 @@ export default function StudentBlogspot() {
                     likingBlogId={likingBlogId}
                     handleSave={handleSave}
                     savedBlogs={savedBlogs}
+                    token={token}
+                    onRefresh={() => loadData(feedSort)}
+                    onAuthError={() => {
+                        clearAuthSession();
+                        navigate('/login/student', { replace: true });
+                    }}
                     theme={theme}
                 />
             );
@@ -331,6 +355,12 @@ export default function StudentBlogspot() {
                     handleLike={handleLike}
                     likingBlogId={likingBlogId}
                     handleSave={handleSave}
+                    token={token}
+                    onRefresh={() => loadData(feedSort)}
+                    onAuthError={() => {
+                        clearAuthSession();
+                        navigate('/login/student', { replace: true });
+                    }}
                     theme={theme}
                 />
             );
@@ -358,7 +388,7 @@ export default function StudentBlogspot() {
         <main className={`h-screen overflow-hidden bg-gradient-to-b p-4 ${isDark ? 'from-slate-700 to-slate-800 text-slate-100' : 'from-slate-100 to-slate-200 text-slate-900'}`}>
             <div className={`grid h-full grid-cols-1 gap-4 ${isSidebarCollapsed ? 'md:grid-cols-[88px_minmax(0,1fr)]' : 'md:grid-cols-[280px_minmax(0,1fr)]'} transition-all duration-300`}>
                 <aside className={`rounded-2xl border p-3 shadow-lg backdrop-blur ${isDark ? 'border-orange-400/30 bg-slate-900/80' : 'border-slate-200 bg-white/90'}`}>
-                    <div className="flex h-full flex-col justify-between">
+                    <div className="flex pl-3 h-full flex-col justify-between">
                         <div>
                             <div className="mb-3 flex items-start justify-between gap-2">
                                 <div className={isSidebarCollapsed ? 'hidden' : ''}>
@@ -366,8 +396,11 @@ export default function StudentBlogspot() {
                                         Student Space
                                     </p>
                                     <h2 className="mt-1 text-2xl font-extrabold">BlogSpot</h2>
-                                    <p className={`mt-1 text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                    <p className={`mt-3 text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                         {displayName}
+                                    </p>
+                                    <p className={`mt-0.5 mb-3 text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        {session?.email}
                                     </p>
                                 </div>
 
@@ -395,7 +428,7 @@ export default function StudentBlogspot() {
                                 </button>
                             ) : null}
 
-                            <nav className="grid gap-2">
+                            <nav className="grid gap-5">
                                 {sidebarItems.map((item) => {
                                     const Icon = item.icon;
                                     const isActive = activeView === item.key;
@@ -404,7 +437,7 @@ export default function StudentBlogspot() {
                                         <button
                                             key={item.key}
                                             type="button"
-                                            className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold transition ${isSidebarCollapsed ? 'justify-center md:px-2' : 'justify-start'} ${isActive
+                                            className={`inline-flex items-center gap-3 rounded-xl border px-4 py-3 text-md font-bold transition ${isSidebarCollapsed ? 'justify-center md:px-2' : 'justify-start'} ${isActive
                                                 ? 'border-orange-500 bg-gradient-to-r from-orange-500 to-orange-600 text-orange-50'
                                                 : (isDark
                                                     ? 'border-slate-600 bg-slate-800/80 text-slate-100 hover:border-orange-400'

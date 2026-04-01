@@ -62,17 +62,17 @@ export default function HandleBlogsSection({
                 {blogs.map((blog) => (
                     <article
                         key={`handle-${blog.id}`}
-                        className={`mx-auto w-full max-w-4xl rounded-2xl border pt-8 pb-8 shadow-sm transition duration-300 hover:shadow-md lg:pl-15 lg:pr-15 ${isDark ? 'border-slate-600 bg-slate-900/85' : 'border-slate-200 bg-slate-50'
+                        className={`mx-auto w-full max-w-4xl rounded-2xl border pt-8 pb-8 shadow-sm transition duration-300 hover:shadow-md lg:pl-15 lg:pr-15 ${isDark ? 'border-gray-300 bg-white' : 'border-slate-200 bg-slate-50'
                             }`}
                     >
                         <div className="flex flex-wrap items-start justify-between gap-3 pb-3">
                             <div className="flex items-center gap-3">
-                                <CircleUserRound size={34} className={isDark ? 'text-blue-300' : 'text-blue-600'} />
+                                <CircleUserRound size={34} className={isDark ? 'text-blue-600' : 'text-blue-600'} />
                                 <div>
-                                    <p className={`text-sm font-semibold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                                    <p className={`text-sm font-semibold ${isDark ? 'text-slate-900' : 'text-blue-700'}`}>
                                         {blog.authorName || 'Unknown User'}
                                     </p>
-                                    <p className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                    <p className={`text-xs font-semibold ${isDark ? 'text-slate-600' : 'text-slate-500'}`}>
                                         Student Author
                                     </p>
                                 </div>
@@ -85,17 +85,17 @@ export default function HandleBlogsSection({
                                 >
                                     {blog.status || 'PENDING'}
                                 </span>
-                                <p className={`text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                                <p className={`text-sm font-semibold ${isDark ? 'text-slate-600' : 'text-slate-600'}`}>
                                     {blog.date || '-'}
                                 </p>
                             </div>
                         </div>
 
-                        <h3 className={`mt-5 text-4xl font-medium tracking-tight ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>
+                        <h3 className={`mt-5 text-4xl font-medium tracking-tight ${isDark ? 'text-slate-900' : 'text-slate-900'}`}>
                             {blog.title}
                         </h3>
 
-                        <p className={`mt-5 whitespace-pre-wrap text-[1.05rem] leading-9 ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>
+                        <p className={`mt-5 whitespace-pre-wrap text-[1.05rem] leading-9 ${isDark ? 'text-slate-800' : 'text-slate-800'}`}>
                             {blog.content || ''}
                         </p>
 
@@ -105,8 +105,8 @@ export default function HandleBlogsSection({
                                 onClick={() => moderateBlog(blog.id, 'approve')}
                                 disabled={busyId === blog.id}
                                 className={`rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 ${isDark
-                                        ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-200'
-                                        : 'border-emerald-300 bg-emerald-50 text-emerald-700'
+                                    ? 'border-emerald-400 bg-emerald-100 text-emerald-700'
+                                    : 'border-emerald-300 bg-emerald-50 text-emerald-700'
                                     }`}
                             >
                                 {busyId === blog.id ? 'Working...' : 'Approve'}
@@ -117,8 +117,8 @@ export default function HandleBlogsSection({
                                 onClick={() => moderateBlog(blog.id, 'reject')}
                                 disabled={busyId === blog.id}
                                 className={`rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 ${isDark
-                                        ? 'border-amber-400/40 bg-amber-500/20 text-amber-200'
-                                        : 'border-amber-300 bg-amber-50 text-amber-700'
+                                    ? 'border-amber-400 bg-amber-100 text-amber-700'
+                                    : 'border-amber-300 bg-amber-50 text-amber-700'
                                     }`}
                             >
                                 {busyId === blog.id ? 'Working...' : 'Reject'}
@@ -129,8 +129,8 @@ export default function HandleBlogsSection({
                                 onClick={() => moderateBlog(blog.id, 'delete')}
                                 disabled={busyId === blog.id}
                                 className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70 ${isDark
-                                        ? 'border-rose-400/50 bg-rose-500/15 text-rose-200'
-                                        : 'border-rose-200 bg-rose-50 text-rose-700'
+                                    ? 'border-rose-400 bg-rose-100 text-rose-700'
+                                    : 'border-rose-200 bg-rose-50 text-rose-700'
                                     }`}
                             >
                                 <Trash2 size={14} />

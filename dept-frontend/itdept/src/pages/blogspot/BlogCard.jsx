@@ -12,6 +12,17 @@ export default function BlogCard({
 }) {
     const isDark = theme === 'dark';
 
+    const getAuthorTag = (authorRole) => {
+        const role = String(authorRole || '').toUpperCase();
+        if (role === 'STUDENT') {
+            return 'Student author';
+        }
+        if (role === 'STAFF' || role === 'ADMIN') {
+            return 'Faculty author';
+        }
+        return 'Author';
+    };
+
     const cardClass = isDark
         ? 'border-slate-700/80 bg-slate-900/70 text-slate-100 hover:border-orange-400/70'
         : 'border-slate-200 bg-white/95 text-slate-900 hover:border-orange-300';
@@ -69,7 +80,7 @@ export default function BlogCard({
                 </div>
 
                 <p className={`text-right text-xs font-semibold ${subtleText}`}>
-                    By {blog.authorName || 'Unknown'}
+                    {blog.authorName || 'Unknown'} • {getAuthorTag(blog.authorRole)}
                     <br />
                     {blog.date || '-'}
                 </p>

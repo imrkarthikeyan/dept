@@ -222,11 +222,19 @@ export default function FacultyDashboard() {
         setError('');
 
         try {
-            await apiRequest('/api/blogs/create', {
+            const createdBlog = await apiRequest('/api/blogs/create', {
                 method: 'POST',
                 token,
                 body: { title: title.trim(), content: content.trim() },
             });
+
+            // Fallback safeguard: if backend returns pending for faculty, approve immediately.
+            if (createdBlog?.id && String(createdBlog?.status || '').toUpperCase() !== 'APPROVED') {
+                await apiRequest(`/api/blogs/${createdBlog.id}/approve`, {
+                    method: 'PUT',
+                    token,
+                });
+            }
 
             setTitle('');
             setContent('');
@@ -314,8 +322,8 @@ export default function FacultyDashboard() {
             return (
                 <section
                     className={`rounded-2xl border p-4 ${isDark
-                            ? 'border-orange-400/30 bg-slate-900/70 text-slate-100'
-                            : 'border-slate-200 bg-white/90 text-slate-700'
+                        ? 'border-orange-400/30 bg-slate-900/70 text-slate-100'
+                        : 'border-slate-200 bg-white/90 text-slate-700'
                         }`}
                 >
                     Loading data...
@@ -347,6 +355,12 @@ export default function FacultyDashboard() {
                     likingBlogId={likingBlogId}
                     handleSave={handleSave}
                     savedBlogs={savedBlogs}
+                    token={token}
+                    onRefresh={() => loadData(feedSort)}
+                    onAuthError={() => {
+                        clearAuthSession();
+                        navigate('/login/faculty', { replace: true });
+                    }}
                     theme={theme}
                 />
             );
@@ -360,6 +374,12 @@ export default function FacultyDashboard() {
                     likingBlogId={likingBlogId}
                     handleSave={handleSave}
                     savedBlogs={savedBlogs}
+                    token={token}
+                    onRefresh={() => loadData(feedSort)}
+                    onAuthError={() => {
+                        clearAuthSession();
+                        navigate('/login/faculty', { replace: true });
+                    }}
                     theme={theme}
                 />
             );
@@ -372,6 +392,12 @@ export default function FacultyDashboard() {
                     handleLike={handleLike}
                     likingBlogId={likingBlogId}
                     handleSave={handleSave}
+                    token={token}
+                    onRefresh={() => loadData(feedSort)}
+                    onAuthError={() => {
+                        clearAuthSession();
+                        navigate('/login/faculty', { replace: true });
+                    }}
                     theme={theme}
                 />
             );
@@ -435,7 +461,10 @@ export default function FacultyDashboard() {
                                     <p className={`mt-1 text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                         {displayName}
                                     </p>
-                                    <p className={`text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                    <p className={`mt-0.5 text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        {session?.email}
+                                    </p>
+                                    <p className={`mt-1 text-xs font-semibold uppercase tracking-wide ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                                         Faculty
                                     </p>
                                 </div>
@@ -443,8 +472,8 @@ export default function FacultyDashboard() {
                                 <button
                                     type="button"
                                     className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition ${isDark
-                                            ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400'
-                                            : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'
+                                        ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400'
+                                        : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'
                                         }`}
                                     onClick={() => setIsSidebarCollapsed((prev) => !prev)}
                                     aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Minimize sidebar'}
@@ -458,8 +487,8 @@ export default function FacultyDashboard() {
                                 <button
                                     type="button"
                                     className={`mb-3 hidden w-full items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-xs font-bold transition md:inline-flex ${isDark
-                                            ? 'border-orange-400/40 bg-orange-500/20 text-orange-200 hover:bg-orange-500/30'
-                                            : 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100'
+                                        ? 'border-orange-400/40 bg-orange-500/20 text-orange-200 hover:bg-orange-500/30'
+                                        : 'border-orange-300 bg-orange-50 text-orange-700 hover:bg-orange-100'
                                         }`}
                                     onClick={() => setIsSidebarCollapsed(false)}
                                     title="Expand sidebar"
@@ -531,8 +560,8 @@ export default function FacultyDashboard() {
                             <button
                                 type="button"
                                 className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-bold transition ${isDark
-                                        ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400'
-                                        : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'
+                                    ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400'
+                                    : 'border-slate-200 bg-white text-slate-700 hover:border-orange-300'
                                     }`}
                                 onClick={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
                                 aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -547,8 +576,8 @@ export default function FacultyDashboard() {
                     {error ? (
                         <p
                             className={`rounded-xl border px-4 py-3 text-sm font-semibold ${isDark
-                                    ? 'border-rose-400/50 bg-rose-500/15 text-rose-200'
-                                    : 'border-rose-200 bg-rose-50 text-rose-700'
+                                ? 'border-rose-400/50 bg-rose-500/15 text-rose-200'
+                                : 'border-rose-200 bg-rose-50 text-rose-700'
                                 }`}
                         >
                             {error}
