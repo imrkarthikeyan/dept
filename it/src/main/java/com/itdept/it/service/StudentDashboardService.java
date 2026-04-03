@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,7 +55,7 @@ public class StudentDashboardService {
     public int getMyStreak(String email) {
         User student = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired user session"));
-        return student.getStreak();
+        return getEffectiveCurrentStreak(student);
     }
 
     public List<BlogResponse> getFeedSortedByDate() {
@@ -99,16 +101,31 @@ public class StudentDashboardService {
         int likesReceived = myBlogs.stream().mapToInt(Blog::getLikesCount).sum();
         int likesGiven = (int) likeRepository.countByUser(student);
         double avgLikes = totalBlogs == 0 ? 0.0 : (double) likesReceived / totalBlogs;
+        int currentStreak = getEffectiveCurrentStreak(student);
 
         StudentStatsResponse response = new StudentStatsResponse();
         response.setTotalBlogsCreated(totalBlogs);
         response.setTotalLikesReceived(likesReceived);
         response.setTotalLikesGiven(likesGiven);
-        response.setCurrentStreak(student.getStreak());
-        response.setLongestStreak(Math.max(student.getLongestStreak(), student.getStreak()));
+        response.setCurrentStreak(currentStreak);
+        response.setLongestStreak(Math.max(student.getLongestStreak(), currentStreak));
         response.setTotalViews(null);
         response.setAverageLikesPerBlog(avgLikes);
         return response;
+    }
+
+    private int getEffectiveCurrentStreak(User student) {
+        LocalDate lastPostDate = student.getLastPostDate();
+        if (lastPostDate == null) {
+            return 0;
+        }
+
+        long daysSinceLastPost = ChronoUnit.DAYS.between(lastPostDate, LocalDate.now());
+        if (daysSinceLastPost <= 1) {
+            return student.getStreak();
+        }
+
+        return 0;
     }
 
     private BlogResponse mapToResponse(Blog blog) {

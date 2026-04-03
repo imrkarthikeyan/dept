@@ -64,19 +64,20 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
 
                         // student endpoints - must come before /api/blogs/* rules
-                        .requestMatchers("/api/student/**").hasAuthority("STUDENT")
+                        .requestMatchers("/api/student/**").hasAnyAuthority("STUDENT", "ROLE_STUDENT")
 
                         // blog creation - any authenticated user
                         .requestMatchers(HttpMethod.POST, "/api/blogs/create").authenticated()
 
                         // faculty/admin only - blog management
-                        .requestMatchers(HttpMethod.GET, "/api/blogs/all/faculty").hasAnyAuthority("STAFF","ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/approve").hasAnyAuthority("STAFF","ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/reject").hasAnyAuthority("STAFF","ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/blogs/*").hasAnyAuthority("STAFF","ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/blogs/all/faculty").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/approve").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/reject").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/blogs/*").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
 
                         // any authenticated user can like blogs
                         .requestMatchers(HttpMethod.POST, "/api/blogs/*/like").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/blogs/*/likes").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/blogs/*/comments").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/blogs/*/comments").authenticated()
 
