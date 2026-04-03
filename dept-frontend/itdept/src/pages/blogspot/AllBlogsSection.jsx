@@ -108,7 +108,7 @@ export default function AllBlogsSection({
         return () => {
             isMounted = false;
         };
-    }, [selectedBlogId, token]);
+    }, [selectedBlogId, token, onAuthError]);
 
     async function handleSubmitComment(e) {
         e.preventDefault();
@@ -405,11 +405,12 @@ export default function AllBlogsSection({
                 ))}
             </div>
 
-            <LikesModal 
+            <LikesModal
                 isOpen={showLikesModal}
                 onClose={() => setShowLikesModal(false)}
                 blogId={selectedBlogForLikes}
                 token={token}
+                onAuthError={onAuthError}
                 theme={theme}
             />
         </section>

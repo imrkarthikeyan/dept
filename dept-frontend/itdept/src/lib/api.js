@@ -1,11 +1,15 @@
+import { getAuthSession } from './auth';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 export async function apiRequest(path, options = {}) {
     const { token, method = 'GET', body } = options;
+    const sessionToken = getAuthSession()?.token;
+    const authToken = token || sessionToken;
 
     const headers = {
         'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
         ...(options.headers || {}),
     };
 

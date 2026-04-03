@@ -381,6 +381,7 @@ export default function SavedBlogsSection({
                 onClose={() => setShowLikesModal(false)}
                 blogId={selectedBlogForLikes}
                 token={token}
+                onAuthError={onAuthError}
                 theme={theme}
             />
         </section>

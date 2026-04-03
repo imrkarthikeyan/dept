@@ -2,9 +2,9 @@ import ksrlogo from "../assets/KSRCT_LOGO_2.png";
 import { useLocation, useNavigate } from "react-router-dom";
 
 const navItems = [
-    "Our Tutors",
+    "Our Faculties",
     "About",
-    "Infrastructure",
+    // "Infrastructure",
     "Achievements",
     "Contact",
     "Dashboard",
@@ -25,7 +25,7 @@ function Navbar({ activePage, onPageChange }) {
     }
 
     const handleNavigation = (item) => {
-        if (item === "Our Tutors") {
+        if (item === "Our Faculties") {
             goToHomeSection("tutors")
             return
         }
@@ -93,7 +93,7 @@ function Navbar({ activePage, onPageChange }) {
                                 key={`${item}-${index}`}
                                 type="button"
                                 onClick={() => handleNavigation(item)}
-                                className={`whitespace-nowrap hover:text-white ${(item === "Our Tutors" && activePage === "tutors") ||
+                                className={`whitespace-nowrap hover:text-white ${(item === "Our Faculties" && activePage === "tutors") ||
                                     (item === "About" && activePage === "about") ||
                                     (item === "Infrastructure" && activePage === "infrastructure") ||
                                     (item === "Achievements" && activePage === "achievements") ||

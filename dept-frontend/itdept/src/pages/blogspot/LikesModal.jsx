@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { apiRequest } from '../../lib/api';
 
-export function LikesModal({ isOpen, onClose, blogId, token, theme }) {
+export function LikesModal({ isOpen, onClose, blogId, token, onAuthError, theme }) {
   const [likes, setLikes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,12 +19,16 @@ export function LikesModal({ isOpen, onClose, blogId, token, theme }) {
     try {
       const response = await apiRequest(`/api/blogs/${blogId}/likes`, {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        token,
       });
       setLikes(Array.isArray(response) ? response : []);
     } catch (err) {
+      if (err?.status === 401 || err?.status === 403) {
+        if (onAuthError) {
+          onAuthError();
+        }
+        return;
+      }
       setError('Failed to load likes');
       console.error('Error loading likes:', err);
     } finally {
@@ -79,8 +83,8 @@ export function LikesModal({ isOpen, onClose, blogId, token, theme }) {
                 <div
                   key={like.id}
                   className={`p-4 flex items-center justify-between ${isDark
-                      ? 'hover:bg-slate-800'
-                      : 'hover:bg-slate-50'
+                    ? 'hover:bg-slate-800'
+                    : 'hover:bg-slate-50'
                     } transition-colors`}
                 >
                   <div>
@@ -93,8 +97,8 @@ export function LikesModal({ isOpen, onClose, blogId, token, theme }) {
                   </div>
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${isDark
-                        ? 'bg-gradient-to-br from-blue-600 to-blue-800 text-white'
-                        : 'bg-gradient-to-br from-blue-400 to-blue-600 text-white'
+                      ? 'bg-gradient-to-br from-blue-600 to-blue-800 text-white'
+                      : 'bg-gradient-to-br from-blue-400 to-blue-600 text-white'
                       }`}
                   >
                     {like.userName.charAt(0).toUpperCase()}
