@@ -2,8 +2,10 @@ package com.itdept.it.controller;
 
 import com.itdept.it.dto.AuthResponse;
 import com.itdept.it.dto.LoginRequest;
+import com.itdept.it.dto.MessageResponse;
+import com.itdept.it.dto.OtpRequest;
+import com.itdept.it.dto.RegisterWithOtpRequest;
 import com.itdept.it.dto.UserResponse;
-import com.itdept.it.model.User;
 import com.itdept.it.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +19,14 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @PostMapping("/register/request-otp")
+    public MessageResponse requestRegisterOtp(@RequestBody OtpRequest request) {
+        return userService.requestRegistrationOtp(request.getEmail());
+    }
+
     @PostMapping("/register")
-    public UserResponse register(@RequestBody User user){
-        return userService.register(user);
+    public UserResponse register(@RequestBody RegisterWithOtpRequest request){
+        return userService.register(request);
     }
 
     @PostMapping("/login")

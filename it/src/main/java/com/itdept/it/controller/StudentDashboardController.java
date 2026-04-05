@@ -60,5 +60,8 @@ public class StudentDashboardController {
         return studentService.getStudentStats(email);
     }
 
-
+    @GetMapping("/trending")
+    public List<BlogResponse> getTrendingBlogs() {
+        return studentService.getTrendingBlogs();
+    }
 }

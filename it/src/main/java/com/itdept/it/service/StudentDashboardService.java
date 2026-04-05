@@ -14,8 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,6 +70,15 @@ public class StudentDashboardService {
     public List<BlogResponse> getFeedSortedByLikes() {
         return blogRepository.findByStatusOrderByLikesCountDesc(Blog.Status.APPROVED)
                 .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<BlogResponse> getTrendingBlogs() {
+        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        return blogRepository.findTopBlogsByLikesInWeek(weekStart)
+                .stream()
+                .limit(3)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
