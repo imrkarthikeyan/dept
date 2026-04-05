@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     BarChart3,
     Bookmark,
@@ -31,15 +31,21 @@ const sidebarItems = [
 
 export default function StudentBlogspot() {
     const navigate = useNavigate();
+    const location = useLocation();
     const session = useMemo(() => getAuthSession(), []);
+
+    const getStudentRedirectLoginPath = useCallback(() => {
+        const redirectTo = encodeURIComponent(`/student/blogspot${location.search}`);
+        return `/login/student?redirect=${redirectTo}`;
+    }, [location.search]);
 
     // Redirect if not authenticated or not a STUDENT
     useEffect(() => {
         if (!session?.token || session?.role !== 'STUDENT') {
             clearAuthSession();
-            navigate('/login/student', { replace: true });
+            navigate(getStudentRedirectLoginPath(), { replace: true });
         }
-    }, []); // Only check once on mount
+    }, [getStudentRedirectLoginPath, navigate, session?.role, session?.token]);
 
     const [theme, setTheme] = useState(() => localStorage.getItem('blogspot-theme') || 'light');
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
@@ -75,6 +81,16 @@ export default function StudentBlogspot() {
     const [posting, setPosting] = useState(false);
     const [likingBlogId, setLikingBlogId] = useState(null);
     const [error, setError] = useState('');
+    const [trendingBlogs, setTrendingBlogs] = useState([]);
+
+    const sharedBlogId = useMemo(() => {
+        const blogId = Number(new URLSearchParams(location.search).get('blogId'));
+        return Number.isFinite(blogId) && blogId > 0 ? blogId : null;
+    }, [location.search]);
+
+    const sharedView = useMemo(() => {
+        return new URLSearchParams(location.search).get('view');
+    }, [location.search]);
 
     const token = session?.token;
     const isDark = theme === 'dark';
@@ -124,12 +140,13 @@ export default function StudentBlogspot() {
         try {
             const feedPath = selectedSort === 'likes' ? '/api/student/feed/likes' : '/api/student/feed/date';
 
-            const [myBlogsRes, feedRes, statsRes, likedRes, streakRes] = await Promise.allSettled([
+            const [myBlogsRes, feedRes, statsRes, likedRes, streakRes, trendingRes] = await Promise.allSettled([
                 safeRequest('/api/student/my-blogs'),
                 safeRequest(feedPath, '/api/student/feed'),
                 safeRequest('/api/student/stats'),
                 safeRequest('/api/student/liked-blogs'),
                 safeRequest('/api/student/streak'),
+                safeRequest('/api/student/trending'),
             ]);
 
             const authFailure = [myBlogsRes, feedRes, statsRes, likedRes, streakRes].find(
@@ -139,7 +156,7 @@ export default function StudentBlogspot() {
             if (authFailure) {
                 clearAuthSession();
                 setError('Your session expired or access changed. Please log in again.');
-                navigate('/login/student', { replace: true });
+                navigate(getStudentRedirectLoginPath(), { replace: true });
                 return;
             }
 
@@ -152,10 +169,14 @@ export default function StudentBlogspot() {
             const likedData = likedRes.status === 'fulfilled' && Array.isArray(likedRes.value)
                 ? likedRes.value
                 : [];
+            const trendingData = trendingRes.status === 'fulfilled' && Array.isArray(trendingRes.value)
+                ? trendingRes.value
+                : [];
 
             setMyBlogs(myBlogsData);
             setFeed(feedData);
             setLikedBlogs(likedData);
+            setTrendingBlogs(trendingData);
 
             if (statsRes.status === 'fulfilled' && statsRes.value && typeof statsRes.value === 'object') {
                 setStats(statsRes.value);
@@ -182,29 +203,29 @@ export default function StudentBlogspot() {
             if (err?.status === 401 || err?.status === 403) {
                 clearAuthSession();
                 setError('Your session expired or access changed. Please log in again.');
-                navigate('/login/student', { replace: true });
+                navigate(getStudentRedirectLoginPath(), { replace: true });
                 return;
             }
             setError(err.message || 'Failed to load blog data.');
         } finally {
             setLoading(false);
         }
-    }, [token, navigate]);
+    }, [token, navigate, getStudentRedirectLoginPath]);
 
     useEffect(() => {
         loadData(feedSort);
     }, [feedSort, loadData]);
 
+    useEffect(() => {
+        if (sharedView === 'all' || sharedBlogId) {
+            setActiveView('all');
+        }
+    }, [sharedBlogId, sharedView]);
+
     const recentBlogs = useMemo(() => {
-        return [...myBlogs]
+        return [...feed]
             .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
             .slice(0, 4);
-    }, [myBlogs]);
-
-    const trendingBlogs = useMemo(() => {
-        return [...feed]
-            .sort((a, b) => Number(b.likesCount || 0) - Number(a.likesCount || 0))
-            .slice(0, 3);
     }, [feed]);
 
     async function handlePost(e) {
@@ -322,8 +343,9 @@ export default function StudentBlogspot() {
                     onRefresh={() => loadData(feedSort)}
                     onAuthError={() => {
                         clearAuthSession();
-                        navigate('/login/student', { replace: true });
+                        navigate(getStudentRedirectLoginPath(), { replace: true });
                     }}
+                    preselectedBlogId={sharedBlogId}
                     theme={theme}
                 />
             );
@@ -341,7 +363,7 @@ export default function StudentBlogspot() {
                     onRefresh={() => loadData(feedSort)}
                     onAuthError={() => {
                         clearAuthSession();
-                        navigate('/login/student', { replace: true });
+                        navigate(getStudentRedirectLoginPath(), { replace: true });
                     }}
                     theme={theme}
                 />
@@ -359,7 +381,7 @@ export default function StudentBlogspot() {
                     onRefresh={() => loadData(feedSort)}
                     onAuthError={() => {
                         clearAuthSession();
-                        navigate('/login/student', { replace: true });
+                        navigate(getStudentRedirectLoginPath(), { replace: true });
                     }}
                     theme={theme}
                 />
@@ -378,6 +400,16 @@ export default function StudentBlogspot() {
                 trendingBlogs={trendingBlogs}
                 setActiveView={setActiveView}
                 theme={theme}
+                handleLike={handleLike}
+                handleSave={handleSave}
+                savedBlogs={savedBlogs}
+                likingBlogId={likingBlogId}
+                token={token}
+                onRefresh={() => loadData(feedSort)}
+                onAuthError={() => {
+                    clearAuthSession();
+                    navigate(getStudentRedirectLoginPath(), { replace: true });
+                }}
             />
         );
     }

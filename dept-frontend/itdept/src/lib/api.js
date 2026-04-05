@@ -13,11 +13,18 @@ export async function apiRequest(path, options = {}) {
         ...(options.headers || {}),
     };
 
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-    });
+    let response;
+    try {
+        response = await fetch(`${API_BASE_URL}${path}`, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : undefined,
+        });
+    } catch {
+        const error = new Error('Cannot reach backend API. Ensure Spring Boot server is running on port 8080.');
+        error.status = 502;
+        throw error;
+    }
 
     const raw = await response.text();
     let data = null;
@@ -31,6 +38,12 @@ export async function apiRequest(path, options = {}) {
     }
 
     if (!response.ok) {
+        if (response.status === 502) {
+            const error = new Error('Backend gateway error. Ensure Spring Boot server is running and reachable.');
+            error.status = 502;
+            throw error;
+        }
+
         const message =
             (data && typeof data === 'object' && (data.message || data.error)) ||
             (typeof data === 'string' ? data : '') ||

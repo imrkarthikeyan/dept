@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { apiRequest } from '../../lib/api';
 import { clearAuthSession, saveAuthSession } from '../../lib/auth';
 import './AuthPages.css';
@@ -10,6 +10,7 @@ export default function LoginStudent() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     async function handleLogin(e) {
         e.preventDefault();
@@ -36,7 +37,12 @@ export default function LoginStudent() {
                 name: data.name || '',
             });
 
-            navigate('/student/blogspot');
+            const redirectTarget = new URLSearchParams(location.search).get('redirect');
+            if (redirectTarget && redirectTarget.startsWith('/student/blogspot')) {
+                navigate(redirectTarget, { replace: true });
+            } else {
+                navigate('/student/blogspot', { replace: true });
+            }
         } catch (err) {
             clearAuthSession();
             setError(err.message || 'Login failed.');

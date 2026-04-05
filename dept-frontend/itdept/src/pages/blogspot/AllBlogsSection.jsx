@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Bookmark, CircleUserRound, Heart, MessageCircle, MoreVertical, SendHorizontal } from 'lucide-react';
 import { apiRequest } from '../../lib/api';
+import { shareBlogToWhatsApp } from '../../lib/share';
 import EmptyState from './EmptyState';
 import { LikesModal } from './LikesModal';
 
@@ -15,6 +16,7 @@ export default function AllBlogsSection({
     token,
     onRefresh,
     onAuthError,
+    preselectedBlogId = null,
     theme = 'light',
 }) {
     const [selectedBlogId, setSelectedBlogId] = useState(null);
@@ -26,10 +28,20 @@ export default function AllBlogsSection({
     const [showLikesModal, setShowLikesModal] = useState(false);
     const [selectedBlogForLikes, setSelectedBlogForLikes] = useState(null);
     const [blogLikes, setBlogLikes] = useState({});
+    const [shareMenuBlogId, setShareMenuBlogId] = useState(null);
 
     const openLikesModal = async (blogId) => {
         setSelectedBlogForLikes(blogId);
         setShowLikesModal(true);
+    };
+
+    const toggleShareMenu = (blogId) => {
+        setShareMenuBlogId((prev) => (prev === blogId ? null : blogId));
+    };
+
+    const handleShareLink = (blog) => {
+        shareBlogToWhatsApp(blog);
+        setShareMenuBlogId(null);
     };
 
     const isDark = theme === 'dark';
@@ -69,6 +81,16 @@ export default function AllBlogsSection({
             setSelectedBlogId(null);
         }
     }, [selectedBlog, selectedBlogId]);
+
+    useEffect(() => {
+        if (!preselectedBlogId || selectedBlogId) {
+            return;
+        }
+
+        if (feed.some((blog) => Number(blog.id) === Number(preselectedBlogId))) {
+            setSelectedBlogId(Number(preselectedBlogId));
+        }
+    }, [feed, preselectedBlogId, selectedBlogId]);
 
     useEffect(() => {
         if (!selectedBlogId || !token) {
@@ -328,16 +350,31 @@ export default function AllBlogsSection({
 
                             <div className="flex items-center gap-2">
                                 <p className={`text-sm font-semibold ${isDark ? 'text-slate-600' : 'text-slate-600'}`}>{blog.date || '-'}</p>
-                                <button
-                                    type="button"
-                                    className={`rounded-full border p-1.5 transition ${isDark
-                                        ? 'border-slate-300 text-slate-600 hover:border-orange-400 hover:text-orange-600'
-                                        : 'border-slate-300 text-slate-600 hover:border-orange-300 hover:text-orange-700'}`}
-                                    aria-label="More options"
-                                    title="More options"
-                                >
-                                    <MoreVertical size={16} />
-                                </button>
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleShareMenu(blog.id)}
+                                        className={`rounded-full border p-1.5 transition ${isDark
+                                            ? 'border-slate-300 text-slate-600 hover:border-orange-400 hover:text-orange-600'
+                                            : 'border-slate-300 text-slate-600 hover:border-orange-300 hover:text-orange-700'}`}
+                                        aria-label="More options"
+                                        title="More options"
+                                    >
+                                        <MoreVertical size={16} />
+                                    </button>
+
+                                    {shareMenuBlogId === blog.id ? (
+                                        <div className={`absolute right-0 top-10 z-20 min-w-[130px] rounded-lg border p-1 shadow-lg ${isDark ? 'border-slate-600 bg-slate-800' : 'border-slate-200 bg-white'}`}>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleShareLink(blog)}
+                                                className={`w-full rounded-md px-3 py-1.5 text-left text-sm font-semibold transition ${isDark ? 'text-slate-100 hover:bg-slate-700' : 'text-slate-700 hover:bg-slate-100'}`}
+                                            >
+                                                Share link
+                                            </button>
+                                        </div>
+                                    ) : null}
+                                </div>
                             </div>
                         </div>
 

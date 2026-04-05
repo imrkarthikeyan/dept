@@ -1,30 +1,43 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuthSession } from '../../lib/auth';
 import './BlogspotLoginPortal.css';
 
 function BlogspotLoginPortal() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const redirectTarget = new URLSearchParams(location.search).get('redirect');
+    const redirectQuery = redirectTarget ? `?redirect=${encodeURIComponent(redirectTarget)}` : '';
 
     const handleStudentContinue = () => {
         const session = getAuthSession();
 
         if (session?.token && session?.role === 'STUDENT') {
+            if (redirectTarget && redirectTarget.startsWith('/student/blogspot')) {
+                navigate(redirectTarget);
+                return;
+            }
+
             navigate('/student/blogspot');
             return;
         }
 
-        navigate('/login/student');
+        navigate(`/login/student${redirectQuery}`);
     };
 
     const handleFacultyContinue = () => {
         const session = getAuthSession();
 
         if (session?.token && (session?.role === 'STAFF' || session?.role === 'ADMIN')) {
+            if (redirectTarget && redirectTarget.startsWith('/faculty/dashboard')) {
+                navigate(redirectTarget);
+                return;
+            }
+
             navigate('/faculty/dashboard');
             return;
         }
 
-        navigate('/login/faculty');
+        navigate(`/login/faculty${redirectQuery}`);
     };
 
     return (

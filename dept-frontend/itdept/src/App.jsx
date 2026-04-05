@@ -23,14 +23,16 @@ import BlogspotLoginPortal from './pages/blogspot/BlogspotLoginPortal';
 import { getAuthSession } from './lib/auth';
 
 function ProtectedRoute({ allowedRoles, children }) {
+  const location = useLocation();
   const session = getAuthSession();
+  const redirect = encodeURIComponent(`${location.pathname}${location.search}`);
 
   if (!session?.token || !session?.role) {
-    return <Navigate to="/portal" replace />;
+    return <Navigate to={`/portal?redirect=${redirect}`} replace />;
   }
 
   if (!allowedRoles.includes(session.role)) {
-    return <Navigate to="/portal" replace />;
+    return <Navigate to={`/portal?redirect=${redirect}`} replace />;
   }
 
   return children;

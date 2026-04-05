@@ -9,10 +9,41 @@ export default function SignupStdent() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [otp, setOtp] = useState('');
     const [registerAs, setRegisterAs] = useState('student');
     const [loading, setLoading] = useState(false);
+    const [otpLoading, setOtpLoading] = useState(false);
+    const [otpSentTo, setOtpSentTo] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const isOtpVerifiedTarget = otpSentTo && otpSentTo === normalizedEmail;
+
+    async function handleSendOtp() {
+        if (!normalizedEmail) {
+            setError('Enter your email first to get OTP.');
+            return;
+        }
+
+        setOtpLoading(true);
+        setError('');
+        setMessage('');
+
+        try {
+            const response = await apiRequest('/api/auth/register/request-otp', {
+                method: 'POST',
+                body: { email: normalizedEmail },
+            });
+
+            setOtpSentTo(normalizedEmail);
+            setMessage(response?.message || 'OTP sent to your email.');
+        } catch (err) {
+            setError(err.message || 'Failed to send OTP.');
+        } finally {
+            setOtpLoading(false);
+        }
+    }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -20,14 +51,21 @@ export default function SignupStdent() {
         setError('');
         setMessage('');
 
+        if (!isOtpVerifiedTarget) {
+            setLoading(false);
+            setError('Please request OTP for this email before creating account.');
+            return;
+        }
+
         try {
             await apiRequest('/api/auth/register', {
                 method: 'POST',
                 body: {
                     name: name.trim(),
-                    email: email.trim(),
+                    email: normalizedEmail,
                     password,
                     role: normalizeRoleForRegistration(registerAs),
+                    otp: otp.trim(),
                 },
             });
 
@@ -61,7 +99,30 @@ export default function SignupStdent() {
                     type="email"
                     placeholder="Email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                        const nextEmail = e.target.value;
+                        setEmail(nextEmail);
+                        const nextNormalized = nextEmail.trim().toLowerCase();
+                        if (otpSentTo && otpSentTo !== nextNormalized) {
+                            setOtp('');
+                        }
+                    }}
+                    className="auth-input"
+                    required
+                />
+                <button
+                    type="button"
+                    className="auth-primary-btn"
+                    onClick={handleSendOtp}
+                    disabled={otpLoading || !normalizedEmail}
+                >
+                    {otpLoading ? 'Sending OTP...' : (isOtpVerifiedTarget ? 'Resend OTP' : 'Send OTP')}
+                </button>
+                <input
+                    type="text"
+                    placeholder="Enter OTP"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value)}
                     className="auth-input"
                     required
                 />
