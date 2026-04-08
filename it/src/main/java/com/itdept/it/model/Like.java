@@ -6,16 +6,21 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Column;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Table(name = "likes", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "blog_id"})
+    @UniqueConstraint(columnNames = {"user_id", "blog_id"})
 })
 public class Like {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,6 +32,16 @@ public class Like {
     @ManyToOne
     @JoinColumn(name = "blog_id")
     private Blog blog;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+    }
 
     public Like(Long id, User user, Blog blog) {
         this.id = id;
@@ -59,5 +74,13 @@ public class Like {
 
     public void setBlog(Blog blog) {
         this.blog = blog;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

@@ -14,16 +14,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalAdjusters;
+import java.util.HashMap;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 public class StudentDashboardService {
+
     @Autowired
     private BlogRepository blogRepository;
 
@@ -75,10 +77,20 @@ public class StudentDashboardService {
     }
 
     public List<BlogResponse> getTrendingBlogs() {
-        LocalDate weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
-        return blogRepository.findTopBlogsByLikesInWeek(weekStart)
-                .stream()
-                .limit(3)
+        LocalDateTime windowStart = LocalDateTime.now().minusDays(10);
+        List<Long> topBlogIds = likeRepository.findTopBlogIdsByLikesInWindow(windowStart);
+        if (topBlogIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Blog> blogsById = new HashMap<>();
+        for (Blog blog : blogRepository.findAllById(topBlogIds)) {
+            blogsById.put(blog.getId(), blog);
+        }
+
+        return topBlogIds.stream()
+                .map(blogsById::get)
+                .filter(blog -> blog != null)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -89,7 +101,7 @@ public class StudentDashboardService {
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid or expired user session"));
 
             List<Like> likes = likeRepository.findByUser(student);
-            
+
             return likes.stream()
                     .map(Like::getBlog)
                     .filter(blog -> blog != null)

@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 @Service
 public class UserService {
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    private static final String COLLEGE_EMAIL_DOMAIN = "ksrct.net";
 
     private static class OtpEntry {
         private final String otp;
@@ -78,6 +79,7 @@ public class UserService {
         String password = request.getPassword() != null ? request.getPassword().trim() : "";
         String otp = request.getOtp() != null ? request.getOtp().trim() : "";
         Role role = request.getRole() != null ? request.getRole() : Role.STUDENT;
+        boolean otpRequired = !isCollegeEmail(normalizedEmail);
 
         if (name.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name is required");
@@ -87,29 +89,34 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password must be at least 6 characters");
         }
 
-        if (otp.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP is required");
-        }
-
         if (userRepository.existsByEmail(normalizedEmail)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already exists!");
         }
 
-        OtpEntry entry = registerOtpStore.get(normalizedEmail);
-        if (entry == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP not requested for this email");
-        }
+        if (otpRequired) {
+            if (otp.isEmpty()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP is required");
+            }
 
-        if (Instant.now().isAfter(entry.expiresAt)) {
+            OtpEntry entry = registerOtpStore.get(normalizedEmail);
+            if (entry == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP not requested for this email");
+            }
+
+            if (Instant.now().isAfter(entry.expiresAt)) {
+                registerOtpStore.remove(normalizedEmail);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP expired. Please request a new OTP.");
+            }
+
+            if (!entry.otp.equals(otp)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
+            }
+
             registerOtpStore.remove(normalizedEmail);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP expired. Please request a new OTP.");
+        } else {
+            // No OTP flow for approved college email IDs.
+            registerOtpStore.remove(normalizedEmail);
         }
-
-        if (!entry.otp.equals(otp)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid OTP");
-        }
-
-        registerOtpStore.remove(normalizedEmail);
 
         User user = new User();
         user.setName(name);
@@ -135,6 +142,21 @@ public class UserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Enter a valid email address");
         }
         return normalized;
+    }
+
+    private boolean isCollegeEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+
+        String normalized = email.trim().toLowerCase();
+        int atIndex = normalized.lastIndexOf('@');
+        if (atIndex < 0 || atIndex == normalized.length() - 1) {
+            return false;
+        }
+
+        String domain = normalized.substring(atIndex + 1);
+        return domain.equals(COLLEGE_EMAIL_DOMAIN) || domain.endsWith("." + COLLEGE_EMAIL_DOMAIN);
     }
 
     private void sendOtpEmail(String toEmail, String otp) {
