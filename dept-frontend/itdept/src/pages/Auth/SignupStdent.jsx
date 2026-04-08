@@ -9,41 +9,39 @@ export default function SignupStdent() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [otp, setOtp] = useState('');
     const [registerAs, setRegisterAs] = useState('student');
     const [loading, setLoading] = useState(false);
-    const [otpLoading, setOtpLoading] = useState(false);
-    const [otpSentTo, setOtpSentTo] = useState('');
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
     const normalizedEmail = email.trim().toLowerCase();
-    const isOtpVerifiedTarget = otpSentTo && otpSentTo === normalizedEmail;
+    const emailDomain = normalizedEmail.includes('@') ? normalizedEmail.split('@').pop() : '';
+    const isCollegeEmail = emailDomain === 'ksrct.net' || emailDomain.endsWith('.ksrct.net');
 
-    async function handleSendOtp() {
-        if (!normalizedEmail) {
-            setError('Enter your email first to get OTP.');
-            return;
-        }
+    // async function handleSendOtp() {
+    //     if (!normalizedEmail) {
+    //         setError('Enter your email first to get OTP.');
+    //         return;
+    //     }
 
-        setOtpLoading(true);
-        setError('');
-        setMessage('');
+    //     setOtpLoading(true);
+    //     setError('');
+    //     setMessage('');
 
-        try {
-            const response = await apiRequest('/api/auth/register/request-otp', {
-                method: 'POST',
-                body: { email: normalizedEmail },
-            });
+    //     try {
+    //         const response = await apiRequest('/api/auth/register/request-otp', {
+    //             method: 'POST',
+    //             body: { email: normalizedEmail },
+    //         });
 
-            setOtpSentTo(normalizedEmail);
-            setMessage(response?.message || 'OTP sent to your email.');
-        } catch (err) {
-            setError(err.message || 'Failed to send OTP.');
-        } finally {
-            setOtpLoading(false);
-        }
-    }
+    //         setOtpSentTo(normalizedEmail);
+    //         setMessage(response?.message || 'OTP sent to your email.');
+    //     } catch (err) {
+    //         setError(err.message || 'Failed to send OTP.');
+    //     } finally {
+    //         setOtpLoading(false);
+    //     }
+    // }
 
     async function handleSubmit(e) {
         e.preventDefault();
@@ -51,9 +49,9 @@ export default function SignupStdent() {
         setError('');
         setMessage('');
 
-        if (!isOtpVerifiedTarget) {
+        if (!isCollegeEmail) {
             setLoading(false);
-            setError('Please request OTP for this email before creating account.');
+            setError('Use your college email ID ending with @ksrct.net to sign up.');
             return;
         }
 
@@ -65,7 +63,7 @@ export default function SignupStdent() {
                     email: normalizedEmail,
                     password,
                     role: normalizeRoleForRegistration(registerAs),
-                    otp: otp.trim(),
+                    otp: '',
                 },
             });
 
@@ -99,18 +97,12 @@ export default function SignupStdent() {
                     type="email"
                     placeholder="Email"
                     value={email}
-                    onChange={(e) => {
-                        const nextEmail = e.target.value;
-                        setEmail(nextEmail);
-                        const nextNormalized = nextEmail.trim().toLowerCase();
-                        if (otpSentTo && otpSentTo !== nextNormalized) {
-                            setOtp('');
-                        }
-                    }}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="auth-input"
                     required
                 />
-                <button
+                <p className="auth-note">Use your college email ID (example: 2303737720521033@ksrct.net).</p>
+                {/* <button
                     type="button"
                     className="auth-primary-btn"
                     onClick={handleSendOtp}
@@ -125,7 +117,7 @@ export default function SignupStdent() {
                     onChange={(e) => setOtp(e.target.value)}
                     className="auth-input"
                     required
-                />
+                /> */}
                 <input
                     type="password"
                     placeholder="Password"

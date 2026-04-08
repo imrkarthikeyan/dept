@@ -371,11 +371,11 @@ export default function BlogSpotDashboard({
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <h2 className="text-xl font-bold">Trending Blogs</h2>
                     <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-orange-700">
-                        Top 3 This Week
+                        Top 3 Last 10 Days
                     </span>
                 </div>
 
-                {trendingBlogs.length === 0 ? <EmptyState text="No blogs trending this week yet." theme={theme} /> : null}
+                {trendingBlogs.length === 0 ? <EmptyState text="No blogs trending in the last 10 days yet." theme={theme} /> : null}
                 <div className="mt-5 grid gap-10">
                     {trendingBlogs.map((blog, index) => (
                         <motion.article
