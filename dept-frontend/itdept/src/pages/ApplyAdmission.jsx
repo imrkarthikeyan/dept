@@ -73,8 +73,8 @@ function ApplyAdmission() {
                 <div key={field} className="admission-reveal animate-fadeIn" style={{ animationDelay: `${0.1 + index * 0.05}s` }}>
                   <label className="block text-sm font-semibold text-gray-800">
                     {field === "fullName" ? "Full Name *" :
-                     field === "parentName" ? "Parent / Guardian Name *" :
-                     field === "email" ? "Email Address *" : "Mobile Number *"}
+                      field === "parentName" ? "Parent / Guardian Name *" :
+                        field === "email" ? "Email Address *" : "Mobile Number *"}
                   </label>
                   <input
                     type={field === "email" ? "email" : field === "mobile" ? "tel" : "text"}
@@ -128,7 +128,7 @@ function ApplyAdmission() {
         </div>
 
         <div className="admission-image-container order-2 relative h-[300px] w-full rounded-3xl overflow-hidden shadow-2xl sm:h-[400px] lg:h-[500px] admission-reveal animate-fadeIn" style={{ animationDelay: "0.12s" }}>
-          <img src={admissionImage} alt="College Admission" className="h-full w-full object-cover rounded-3xl transform transition-transform duration-500 hover:scale-105"/>
+          <img src={admissionImage} alt="College Admission" className="h-full w-full object-cover rounded-3xl transform transition-transform duration-500 hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/25 to-transparent" />
         </div>
 
