@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ksrbg from "../assets/ksrbg.jpeg";
 import collegeImage from "../assets/ksrcollegeoftec_cover.jpg";
 
 function Dashboard() {
+    const navigate = useNavigate();
     const [spotlight, setSpotlight] = useState({ x: 50, y: 40 });
     const [tilt, setTilt] = useState({ rx: 0, ry: 0 });
 
@@ -28,6 +30,21 @@ function Dashboard() {
             rx: (0.5 - y) * 10,
             ry: (x - 0.5) * 10,
         });
+    };
+
+    const handleExploreOpportunities = () => {
+        const target = document.getElementById("why-information-technology");
+        if (!target) {
+            return;
+        }
+
+        const navbarOffset = 80;
+        const y = target.getBoundingClientRect().top + window.pageYOffset - navbarOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+    };
+
+    const handleLoginPortal = () => {
+        navigate("/blogspot/portal");
     };
 
     return (
@@ -101,11 +118,19 @@ function Dashboard() {
                         </div>
 
                         <div className="flex flex-wrap gap-4 pt-4">
-                            <button className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-3 text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/40">
+                            <button
+                                type="button"
+                                onClick={handleExploreOpportunities}
+                                className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-3 text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/40"
+                            >
                                 Explore Opportunities
                             </button>
 
-                            <button className="rounded-lg border border-white/70 px-8 py-3 text-sm font-bold backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:scale-105">
+                            <button
+                                type="button"
+                                onClick={handleLoginPortal}
+                                className="rounded-lg border border-white/70 px-8 py-3 text-sm font-bold backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:scale-105"
+                            >
                                 Login Portal
                             </button>
                         </div>

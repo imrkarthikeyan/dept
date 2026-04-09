@@ -10,6 +10,8 @@ const programOptions = [
   "M.Tech Information Technology",
 ];
 
+const FORM_ENDPOINT = "https://formspree.io/f/mnjjjwkb";
+
 function ApplyAdmission() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -31,17 +33,24 @@ function ApplyAdmission() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch("https://formspree.io/f/YOUR_FORM_ID", {
+      const response = await fetch(FORM_ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ ...formData, _subject: "New Admission Application", _replyto: formData.email }),
       });
       if (response.ok) {
         setSubmitted(true);
+        alert("Our team will contact you soon.");
         setFormData({ fullName: "", parentName: "", email: "", mobile: "", program: "" });
+      } else {
+        alert("Failed to submit application. Please try again.");
       }
     } catch (error) {
       console.error(error);
+      alert("Network error. Please try again.");
     }
     setLoading(false);
   };
