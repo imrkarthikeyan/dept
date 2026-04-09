@@ -2,8 +2,13 @@ package com.itdept.it.config;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 @Component
 public class LikesSchemaMigration {
@@ -16,14 +21,22 @@ public class LikesSchemaMigration {
 
     @EventListener(ApplicationReadyEvent.class)
     public void ensureLikesCreatedAtColumn() {
-        Integer columnCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM information_schema.COLUMNS "
-                + "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'likes' AND COLUMN_NAME = 'created_at'",
-                Integer.class
-        );
+        jdbcTemplate.execute((ConnectionCallback<Void>) connection -> {
+            DatabaseMetaData metaData = connection.getMetaData();
 
-        if (columnCount == null || columnCount == 0) {
-            jdbcTemplate.execute("ALTER TABLE likes ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP");
-        }
+            try (ResultSet columns = metaData.getColumns(null, null, "likes", "created_at")) {
+                if (columns.next()) {
+                    return null;
+                }
+            }
+
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate(
+                        "ALTER TABLE likes ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
+                );
+            }
+
+            return null;
+        });
     }
 }
