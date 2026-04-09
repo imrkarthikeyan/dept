@@ -29,7 +29,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://127.0.0.1:*"));
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "https://*.vercel.app"
+        ));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
@@ -46,45 +50,40 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .anyRequest().authenticated()
-//                )
+                //                .authorizeHttpRequests(auth -> auth
+                //                        .requestMatchers("/api/auth/**").permitAll()
+                //                        .anyRequest().authenticated()
+                //                )
 
-
-//                .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/api/auth/**").permitAll()
-//                        .requestMatchers("/api/blogs/all/faculty", "/api/blogs/*/approve",
-//                                "/api/blogs/*/reject", "/api/blogs/*").hasAnyAuthority("STAFF","ADMIN")
-//                        .anyRequest().authenticated()
-//                )
+                //                .authorizeHttpRequests(auth -> auth
+                //                        .requestMatchers("/api/auth/**").permitAll()
+                //                        .requestMatchers("/api/blogs/all/faculty", "/api/blogs/*/approve",
+                //                                "/api/blogs/*/reject", "/api/blogs/*").hasAnyAuthority("STAFF","ADMIN")
+                //                        .anyRequest().authenticated()
+                //                )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/error").permitAll()
-
-                        // student endpoints - must come before /api/blogs/* rules
-                        .requestMatchers("/api/student/**").hasAnyAuthority("STUDENT", "ROLE_STUDENT")
-
-                        // blog creation - any authenticated user
-                        .requestMatchers(HttpMethod.POST, "/api/blogs/create").authenticated()
-
-                        // faculty/admin only - blog management
-                        .requestMatchers(HttpMethod.GET, "/api/blogs/all/faculty").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/approve").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/blogs/*/reject").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/blogs/*").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
-
-                        // any authenticated user can like blogs
-                        .requestMatchers(HttpMethod.POST, "/api/blogs/*/like").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/blogs/*/likes").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/blogs/*/comments").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/blogs/*/comments").authenticated()
-
-                        .anyRequest().authenticated()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                // student endpoints - must come before /api/blogs/* rules
+                .requestMatchers("/api/student/**").hasAnyAuthority("STUDENT", "ROLE_STUDENT")
+                // blog creation - any authenticated user
+                .requestMatchers(HttpMethod.POST, "/api/blogs/create").authenticated()
+                // faculty/admin only - blog management
+                .requestMatchers(HttpMethod.GET, "/api/blogs/all/faculty").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/blogs/*/approve").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/blogs/*/reject").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/blogs/*").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")
+                // any authenticated user can like blogs
+                .requestMatchers(HttpMethod.POST, "/api/blogs/*/like").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/blogs/*/likes").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/blogs/*/comments").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/blogs/*/comments").authenticated()
+                .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
         http.addFilterBefore(jwtFilter,
