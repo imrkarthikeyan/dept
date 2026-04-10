@@ -14,16 +14,16 @@ import mohanSir from "../assets/mohan_sir1.png";
 
 const tutors = [
     {
-        name: "Prof. Dr.R.Poonkuzhali",
+        name: "Dr.R.Poonkuzhali",
         image: hodMam,
-        role: "Head of Department",
+        role: "Head of The Department",
         subjects: ["Data Structures", "DBMS", "Software Engineering"],
         badges: ["UG", "PG", "Research"],
         experience: "18+ yrs",
         students: "900+",
     },
     {
-        name: "Prof. Nallusamy",
+        name: "Dr.C.Nallusamy",
         image: nallusamySir,
         role: "Professor, Placement Coordinator",
         subjects: ["Computer Networks", "Cloud", "Cyber Security"],
