@@ -74,7 +74,7 @@ const tutors = [
         subjects: ["Machine Learning"],
         badges: ["Frontend", "Backend", "Projects"],
         experience: "11+ yrs",
-        students: "610+",
+        students: "620+",
     },
     {
         name: "Mr.K.C. Mohanraj",
