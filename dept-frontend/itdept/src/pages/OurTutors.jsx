@@ -1,16 +1,20 @@
 import { FiCheckCircle, FiClock, FiUsers } from "react-icons/fi";
-import hodMam from "../assets/hod_mam1.png";
-import nallusamySir from "../assets/nallusamy_sir1.png";
-import thilakrajSir from "../assets/thilakraj_sir1.png";
-import saravananSir from "../assets/saravanan_sir1.png";
-import paviMam from "../assets/pavi_mam1.png";
-import rtdSir from "../assets/rtd_sir1.png";
-import arulmuruganSir from "../assets/arulmurugan_Sir1.png";
-import dineshSir from "../assets/dinesh_sir1.png";
-import keerthanaMam from "../assets/keerthana_mam1.png";
-import sangeethaMam from "../assets/sangeetha_mam1.png";
-import sadhasivamSir from "../assets/sadasivam_sir1.png";
-import mohanSir from "../assets/mohan_sir1.png";
+import hodMam from "../assets/hod_mam1.webp";
+import nithyaMam from "../assets/nithya.webp";
+import geethaMam from "../assets/geetha1.webp";
+import nallusamySir from "../assets/nallusamy1.webp";
+import thilakrajSir from "../assets/thilakraj1.webp";
+import saravananSir from "../assets/saravanan1.webp";
+import paviMam from "../assets/pavi1.webp";
+import rtdSir from "../assets/rtd1.webp";
+import arulmuruganSir from "../assets/arulmurugan1.webp";
+import dineshSir from "../assets/dinesh1.webp";
+import keerthanaMam from "../assets/keerthana1.webp";
+import sangeethaMam from "../assets/sangeetha1.webp";
+import sadhasivamSir from "../assets/sadasivam1.webp";
+import spMam from "../assets/sathiya1.webp";
+import mohanSir from "../assets/mohan1.webp";
+import hemalathaMam from "../assets/Hemalatha E.webp";
 
 const tutors = [
     {
@@ -24,14 +28,14 @@ const tutors = [
     },
     {
         name: "Dr.J.Nithya",
-        image: hodMam,
+        image: nithyaMam,
         role: "Professor",
         subjects: ["Embedded Systems", "Microprocessors",],
         badges: ["UG", "PG", "Research"],
         experience: "22+ yrs",
         students: " 5000+",
     },
-     {
+    {
         name: "Dr.M.Sangeetha",
         image: sangeethaMam,
         role: "Professor",
@@ -69,8 +73,8 @@ const tutors = [
     },
     {
         name: "Ms.S.Geetha",
-        image: saravananSir,
-        role: "Assistant Professor, Internship Coordinator",
+        image: geethaMam,
+        role: "Assistant Professor",
         subjects: ["Machine Learning"],
         badges: ["Frontend", "Backend", "Projects"],
         experience: "11+ yrs",
@@ -87,7 +91,7 @@ const tutors = [
     },
     {
         name: "Mr.K.Saravanan",
-        image: paviMam,
+        image: saravananSir,
         role: "Assistant Professor",
         subjects: ["Java", "OOP", "Problem Solving"],
         badges: ["Java", "DSA", "Labs"],
@@ -95,7 +99,7 @@ const tutors = [
         students: "560+",
     },
     {
-        name: "MrS.Arulmurugan",
+        name: "Mr.S.Arulmurugan",
         image: arulmuruganSir,
         role: "Assistant Professor",
         subjects: ["Data Analytics", "R Programming", "Statistics"],
@@ -108,7 +112,7 @@ const tutors = [
         image: dineshSir,
         role: "Assistant Professor",
         subjects: ["Wireless Sensors"],
-        badges: [ "Networks", "Innovation"],
+        badges: ["Networks", "Innovation"],
         experience: "8+ yrs",
         students: "440+",
     },
@@ -132,7 +136,7 @@ const tutors = [
     },
     {
         name: "Ms.N.Sathyapriya",
-        image: paviMam,
+        image: spMam,
         role: "Assistant Professor",
         subjects: ["Edge Computing"],
         badges: ["Java"],
@@ -150,16 +154,16 @@ const tutors = [
     },
     {
         name: "Ms.E. Hemalatha",
-        image: paviMam,
+        image: hemalathaMam,
         role: "Assistant Professor",
         subjects: ["Java", "OOP", "Problem Solving"],
         badges: ["Java", "DSA", "Labs"],
         experience: "1+ yrs",
         students: "560+",
     },
-    
-    
-   
+
+
+
 ];
 
 function OurTutors() {
@@ -171,7 +175,7 @@ function OurTutors() {
                         --our faculties--
                     </p>
                     <h2 className="text-4xl font-black tracking-tight text-slate-800 sm:text-6xl">
-                        Meet Your Expert Tutors
+                        Meet Your Expert Faculties
                     </h2>
                     <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
                         Hand-picked, verified IT department educators who transform complex concepts into clear,
@@ -185,9 +189,9 @@ function OurTutors() {
                             key={tutor.name}
                             className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_45px_rgba(2,6,23,0.08)] transition hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(2,6,23,0.14)]"
                         >
-                            <div className="relative">
-                                <img src={tutor.image} alt={tutor.name} className="h-[280px] w-full object-cover" />
-                                <div className="absolute bottom-4 left-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                            <div className="relative pb-3">
+                                <img src={tutor.image} alt={tutor.name} className="h-[280px] w-full scale-115 bg-slate-100 object-contain object-top" />
+                                <div className="absolute bottom-0 left-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
                                     <FiCheckCircle className="text-sm" />
                                     Verified Faculty
                                 </div>
