@@ -36,6 +36,7 @@ export default function BlogCard({
     };
 
     const normalizedStatus = String(blog.status || 'PENDING').toLowerCase();
+    const isLiked = Boolean(blog.likedByCurrentUser);
 
     return (
         <article className={`rounded-2xl border ml-20 mr-20 p-4 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md ${cardClass}`}>
@@ -55,12 +56,12 @@ export default function BlogCard({
                     {showLike ? (
                         <button
                             type="button"
-                            className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${isDark ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-300 hover:bg-orange-50'}`}
+                            className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${isLiked ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700') : (isDark ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-300 hover:bg-orange-50')}`}
                             onClick={() => onLike(blog.id)}
                             disabled={likeLoading}
                         >
-                            <Heart size={14} />
-                            {likeLoading ? 'Updating...' : (blog.likesCount || 0)}
+                            <Heart size={14} fill={isLiked ? 'currentColor' : 'none'} />
+                            {likeLoading ? 'Updating...' : isLiked ? 'Liked' : (blog.likesCount || 0)}
                         </button>
                     ) : null}
 

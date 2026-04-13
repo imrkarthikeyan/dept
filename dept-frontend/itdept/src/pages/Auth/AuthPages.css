@@ -156,6 +156,25 @@
     }
 }
 
+@media (max-width: 640px) {
+    .auth-page-wrap {
+        padding-top: 64px;
+    }
+
+    .auth-shell {
+        padding: 1rem 0.75rem;
+    }
+
+    .auth-option-card,
+    .auth-form {
+        padding: 1.15rem;
+    }
+
+    .auth-form {
+        width: 100%;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .auth-fade-up {
         animation: none;

@@ -55,12 +55,12 @@ export default function Contact() {
         <main className="min-h-screen bg-gradient-to-br from-[#071a33] to-[#020b18] text-white overflow-hidden">
 
 
-            <section className="min-h-[100vh] flex flex-col justify-center items-center text-center px-6">
+            <section className="min-h-[100vh] flex flex-col justify-center items-center text-center px-4 sm:px-6">
                 <motion.h1
                     initial={{ opacity: 0, y: 80 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1 }}
-                    className="text-5xl md:text-7xl font-bold text-orange-400"
+                    className="text-4xl sm:text-5xl md:text-7xl font-bold text-orange-400"
                 >
                     Contact IT Department
                 </motion.h1>
@@ -69,7 +69,7 @@ export default function Contact() {
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="text-gray-300 mt-6 max-w-2xl text-lg"
+                    className="text-gray-300 mt-6 max-w-2xl text-base sm:text-lg"
                 >
                     Reach out to our faculty and staff for admissions, academic inquiries, and technical support.
                 </motion.p>
@@ -84,7 +84,7 @@ export default function Contact() {
             </section>
 
 
-            <section className="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-3 gap-10">
+            <section className="max-w-7xl mx-auto px-4 sm:px-6 py-14 sm:py-20 grid md:grid-cols-3 gap-6 sm:gap-10">
                 {[
                     { icon: Phone, title: "Phone", value: "+91 98428 90256" },
                     { icon: Mail, title: "Email", value: "itdept@ksrct.in" },
@@ -97,7 +97,7 @@ export default function Contact() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6, delay: i * 0.2 }}
-                        className="bg-[#0b2a55] rounded-2xl p-8 shadow-xl border-t-4 border-orange-400"
+                        className="bg-[#0b2a55] rounded-2xl p-6 sm:p-8 shadow-xl border-t-4 border-orange-400"
                     >
                         <item.icon size={40} className="text-orange-400 mb-4" />
                         <h3 className="text-xl font-bold mb-2">{item.title}</h3>
@@ -107,7 +107,7 @@ export default function Contact() {
             </section>
 
 
-            <section className="px-6 pb-24">
+            <section className="px-4 sm:px-6 pb-16 sm:pb-24">
                 <motion.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     whileInView={{ scale: 1, opacity: 1 }}
@@ -116,14 +116,14 @@ export default function Contact() {
                 >
                     <iframe
                         title="IT Department Location"
-                        className="w-full h-[450px]"
+                        className="w-full h-[300px] sm:h-[420px] md:h-[450px]"
                         src="https://maps.google.com/maps?q=tiruchengode&t=&z=15&ie=UTF8&iwloc=&output=embed"
                     />
                 </motion.div>
             </section>
 
 
-            <section className="max-w-6xl mx-auto px-6 py-24 grid md:grid-cols-2 gap-16 items-center">
+            <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-24 grid md:grid-cols-2 gap-10 sm:gap-16 items-center">
 
 
                 <motion.div
@@ -131,7 +131,7 @@ export default function Contact() {
                     whileInView={{ x: 0, opacity: 1 }}
                     transition={{ duration: 1 }}
                 >
-                    <h2 className="text-4xl font-bold text-orange-400 mb-6">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-orange-400 mb-6">
                         Send Us a Message
                     </h2>
                     <p className="text-gray-300 mb-10">
@@ -158,7 +158,7 @@ export default function Contact() {
                     initial={{ x: 120, opacity: 0 }}
                     whileInView={{ x: 0, opacity: 1 }}
                     transition={{ duration: 1 }}
-                    className="bg-white text-black rounded-2xl p-10 shadow-2xl space-y-6"
+                    className="bg-white text-black rounded-2xl p-6 sm:p-10 shadow-2xl space-y-6"
                 >
                     <input
                         name="name"
@@ -199,13 +199,13 @@ export default function Contact() {
             </section>
 
 
-            <section className="bg-[#071a33] py-24">
-                <div className="max-w-7xl mx-auto px-6 text-center">
-                    <h2 className="text-4xl font-bold text-orange-400 mb-14 flex justify-center items-center gap-2">
+            <section className="bg-[#071a33] py-16 sm:py-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-orange-400 mb-10 sm:mb-14 flex justify-center items-center gap-2">
                         <Users /> Contact Team
                     </h2>
 
-                    <div className="grid md:grid-cols-3 gap-10">
+                    <div className="grid md:grid-cols-3 gap-6 sm:gap-10">
                         {[
                             { name: "Dr.R.Poonguzhali", role: "HOD - IT Department" },
                             { name: "Prof. Nithya", role: "Vice HOD - IT Department" },

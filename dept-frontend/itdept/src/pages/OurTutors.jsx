@@ -183,23 +183,23 @@ function OurTutors() {
                     </p>
                 </div>
 
-                <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+                <div className="mt-10 grid grid-cols-1 gap-6 md:mt-12 md:gap-8 md:grid-cols-2 xl:grid-cols-3">
                     {tutors.map((tutor) => (
                         <article
                             key={tutor.name}
                             className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_20px_45px_rgba(2,6,23,0.08)] transition hover:-translate-y-1 hover:shadow-[0_25px_50px_rgba(2,6,23,0.14)]"
                         >
                             <div className="relative pb-3">
-                                <img src={tutor.image} alt={tutor.name} className="h-[280px] w-full scale-115 bg-slate-100 object-contain object-top" />
+                                <img src={tutor.image} alt={tutor.name} className="h-[240px] w-full scale-105 bg-slate-100 object-contain object-top sm:h-[280px] sm:scale-110 md:scale-115" />
                                 <div className="absolute bottom-0 left-4 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
                                     <FiCheckCircle className="text-sm" />
                                     Verified Faculty
                                 </div>
                             </div>
 
-                            <div className="space-y-4 p-5">
+                            <div className="space-y-4 p-4 sm:p-5">
                                 <div>
-                                    <h3 className="text-3xl font-extrabold tracking-tight text-slate-800">{tutor.name}</h3>
+                                    <h3 className="text-2xl font-extrabold tracking-tight text-slate-800 sm:text-3xl">{tutor.name}</h3>
                                     <p className="mt-1 text-sm font-medium text-slate-500">{tutor.role}</p>
                                 </div>
 
@@ -218,7 +218,7 @@ function OurTutors() {
                                     ))}
                                 </div>
 
-                                <div className="flex items-center gap-6 border-t border-slate-200 pt-4 text-sm text-slate-600">
+                                <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-4 text-sm text-slate-600 sm:gap-6">
                                     <p className="inline-flex items-center gap-2">
                                         <FiClock className="text-slate-500" />
                                         <span className="font-semibold text-slate-800">{tutor.experience}</span>

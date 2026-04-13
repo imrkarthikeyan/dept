@@ -48,9 +48,18 @@ export default function StudentBlogspot() {
     }, [getStudentRedirectLoginPath, navigate, session?.role, session?.token]);
 
     const [theme, setTheme] = useState(() => localStorage.getItem('blogspot-theme') || 'light');
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
-        () => localStorage.getItem('blogspot-sidebar-collapsed') === 'true',
-    );
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+        const storedValue = localStorage.getItem('blogspot-sidebar-collapsed');
+        if (storedValue === 'true' || storedValue === 'false') {
+            return storedValue === 'true';
+        }
+
+        if (typeof window !== 'undefined') {
+            return window.innerWidth < 1024;
+        }
+
+        return false;
+    });
 
     const [activeView, setActiveView] = useState('dashboard');
     const [title, setTitle] = useState('');
@@ -67,6 +76,22 @@ export default function StudentBlogspot() {
             return [];
         }
     });
+    const likedBlogsStorageKey = `liked-blogs-${session?.email || 'default'}`;
+    const readLikedBlogIds = useCallback(() => {
+        try {
+            const stored = localStorage.getItem(likedBlogsStorageKey);
+            if (!stored) {
+                return [];
+            }
+
+            const parsed = JSON.parse(stored);
+            return Array.isArray(parsed) ? parsed.map((id) => Number(id)).filter(Number.isFinite) : [];
+        } catch {
+            return [];
+        }
+    }, [likedBlogsStorageKey]);
+
+    const [likedBlogIds, setLikedBlogIds] = useState(() => readLikedBlogIds());
     const [stats, setStats] = useState({
         totalBlogsCreated: 0,
         totalLikesReceived: 0,
@@ -112,6 +137,21 @@ export default function StudentBlogspot() {
     useEffect(() => {
         localStorage.setItem('blogspot-sidebar-collapsed', String(isSidebarCollapsed));
     }, [isSidebarCollapsed]);
+
+    useEffect(() => {
+        localStorage.setItem(likedBlogsStorageKey, JSON.stringify(likedBlogIds));
+    }, [likedBlogIds, likedBlogsStorageKey]);
+
+    const applyLikedState = useCallback((blogs, likedIds) => {
+        const likedIdSet = likedIds instanceof Set ? likedIds : new Set(likedIds);
+
+        return Array.isArray(blogs)
+            ? blogs.map((blog) => ({
+                ...blog,
+                likedByCurrentUser: likedIdSet.has(Number(blog.id)),
+            }))
+            : [];
+    }, []);
 
     const loadData = useCallback(async (sort) => {
         if (!token) {
@@ -173,10 +213,15 @@ export default function StudentBlogspot() {
                 ? trendingRes.value
                 : [];
 
-            setMyBlogs(myBlogsData);
-            setFeed(feedData);
-            setLikedBlogs(likedData);
-            setTrendingBlogs(trendingData);
+            const serverLikedIds = likedData.map((blog) => Number(blog.id)).filter(Number.isFinite);
+            const mergedLikedIds = Array.from(new Set([...readLikedBlogIds(), ...serverLikedIds]));
+            const likedIdSet = new Set(mergedLikedIds);
+
+            setLikedBlogIds(mergedLikedIds);
+            setMyBlogs(applyLikedState(myBlogsData, likedIdSet));
+            setFeed(applyLikedState(feedData, likedIdSet));
+            setLikedBlogs(applyLikedState(likedData, likedIdSet));
+            setTrendingBlogs(applyLikedState(trendingData, likedIdSet));
 
             if (statsRes.status === 'fulfilled' && statsRes.value && typeof statsRes.value === 'object') {
                 setStats(statsRes.value);
@@ -210,14 +255,21 @@ export default function StudentBlogspot() {
         } finally {
             setLoading(false);
         }
-    }, [token, navigate, getStudentRedirectLoginPath]);
+    }, [applyLikedState, navigate, getStudentRedirectLoginPath, readLikedBlogIds, token]);
 
     useEffect(() => {
         loadData(feedSort);
     }, [feedSort, loadData]);
 
     useEffect(() => {
-        if (sharedView === 'all' || sharedBlogId) {
+        const allowedViews = new Set(['create', 'dashboard', 'all', 'mine', 'saved', 'stats']);
+
+        if (sharedView && allowedViews.has(sharedView)) {
+            setActiveView(sharedView);
+            return;
+        }
+
+        if (sharedBlogId) {
             setActiveView('all');
         }
     }, [sharedBlogId, sharedView]);
@@ -259,12 +311,62 @@ export default function StudentBlogspot() {
         setLikingBlogId(blogId);
         setError('');
 
+        const currentLikedIds = new Set(readLikedBlogIds());
+        const isCurrentlyLiked = currentLikedIds.has(Number(blogId));
+        const likeDelta = isCurrentlyLiked ? -1 : 1;
+
+        const patchLikedBlog = (blog) => {
+            if (Number(blog.id) !== Number(blogId)) {
+                return blog;
+            }
+
+            return {
+                ...blog,
+                likesCount: Math.max(0, Number(blog.likesCount || 0) + likeDelta),
+                likedByCurrentUser: !isCurrentlyLiked,
+            };
+        };
+
         try {
             await apiRequest(`/api/blogs/${blogId}/like`, {
                 method: 'POST',
                 token,
             });
-            await loadData(feedSort);
+
+            setLikedBlogIds((prev) => {
+                const next = new Set(prev.map((id) => Number(id)));
+                if (isCurrentlyLiked) {
+                    next.delete(Number(blogId));
+                } else {
+                    next.add(Number(blogId));
+                }
+                return Array.from(next);
+            });
+            setFeed((prev) => prev.map(patchLikedBlog));
+            setMyBlogs((prev) => prev.map(patchLikedBlog));
+            setSavedBlogs((prev) => prev.map(patchLikedBlog));
+            setTrendingBlogs((prev) => prev.map(patchLikedBlog));
+            setLikedBlogs((prev) => {
+                if (isCurrentlyLiked) {
+                    return prev.filter((blog) => Number(blog.id) !== Number(blogId));
+                }
+
+                const existing = prev.find((blog) => Number(blog.id) === Number(blogId));
+
+                if (existing) {
+                    return prev.map(patchLikedBlog);
+                }
+
+                const sourceBlog = feed.find((blog) => Number(blog.id) === Number(blogId))
+                    || myBlogs.find((blog) => Number(blog.id) === Number(blogId))
+                    || savedBlogs.find((blog) => Number(blog.id) === Number(blogId));
+
+                return sourceBlog ? [...prev, patchLikedBlog(sourceBlog)] : prev;
+            });
+            setStats((prev) => ({
+                ...prev,
+                totalLikesGiven: Math.max(0, Number(prev.totalLikesGiven || 0) + likeDelta),
+            }));
         } catch (err) {
             setError(err.message || 'Unable to update like.');
         } finally {
@@ -417,9 +519,9 @@ export default function StudentBlogspot() {
     const currentTitle = sidebarItems.find((item) => item.key === activeView)?.label || 'Dashboard';
 
     return (
-        <main className={`h-screen overflow-hidden bg-gradient-to-b p-4 ${isDark ? 'from-slate-700 to-slate-800 text-slate-100' : 'from-slate-100 to-slate-200 text-slate-900'}`}>
-            <div className={`grid h-full grid-cols-1 gap-4 ${isSidebarCollapsed ? 'md:grid-cols-[88px_minmax(0,1fr)]' : 'md:grid-cols-[280px_minmax(0,1fr)]'} transition-all duration-300`}>
-                <aside className={`rounded-2xl border p-3 shadow-lg backdrop-blur ${isDark ? 'border-orange-400/30 bg-slate-900/80' : 'border-slate-200 bg-white/90'}`}>
+        <main className={`blogspot-dashboard-shell min-h-screen h-auto overflow-visible bg-gradient-to-b p-2 sm:p-4 md:h-screen md:overflow-hidden ${isDark ? 'from-slate-700 to-slate-800 text-slate-100' : 'from-slate-100 to-slate-200 text-slate-900'}`}>
+            <div className={`grid grid-cols-1 gap-4 md:h-full ${isSidebarCollapsed ? 'md:grid-cols-[88px_minmax(0,1fr)]' : 'md:grid-cols-[280px_minmax(0,1fr)]'} transition-all duration-300`}>
+                <aside className={`hidden rounded-2xl border p-3 shadow-lg backdrop-blur md:block ${isDark ? 'border-orange-400/30 bg-slate-900/80' : 'border-slate-200 bg-white/90'}`}>
                     <div className="flex pl-3 h-full flex-col justify-between">
                         <div>
                             <div className="mb-3 flex items-start justify-between gap-2">
@@ -460,7 +562,7 @@ export default function StudentBlogspot() {
                                 </button>
                             ) : null}
 
-                            <nav className="grid gap-5">
+                            <nav className="grid gap-6">
                                 {sidebarItems.map((item) => {
                                     const Icon = item.icon;
                                     const isActive = activeView === item.key;
@@ -469,7 +571,7 @@ export default function StudentBlogspot() {
                                         <button
                                             key={item.key}
                                             type="button"
-                                            className={`inline-flex items-center gap-3 rounded-xl border px-4 py-3 text-md font-bold transition ${isSidebarCollapsed ? 'justify-center md:px-2' : 'justify-start'} ${isActive
+                                            className={`inline-flex items-center gap-4 rounded-xl border px-4 py-3 text-md font-bold transition ${isSidebarCollapsed ? 'justify-center md:px-2' : 'justify-start'} ${isActive
                                                 ? 'border-orange-500 bg-gradient-to-r from-orange-500 to-orange-600 text-orange-50'
                                                 : (isDark
                                                     ? 'border-slate-600 bg-slate-800/80 text-slate-100 hover:border-orange-400'
@@ -496,7 +598,24 @@ export default function StudentBlogspot() {
                     </div>
                 </aside>
 
-                <section className="min-h-0 space-y-3 overflow-y-auto pr-1">
+                <section className="min-h-0 space-y-3 overflow-visible pr-0 md:overflow-y-auto md:pr-1">
+                    <div className={`rounded-2xl border px-4 py-3 md:hidden ${isDark ? 'border-orange-400/30 bg-slate-900/75' : 'border-slate-200 bg-white/90'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <p className={`text-sm font-extrabold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{displayName}</p>
+                                <p className={`mt-0.5 text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{session?.email}</p>
+                            </div>
+                            <button
+                                type="button"
+                                className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-bold transition ${isDark ? 'border-rose-400/50 bg-rose-500/15 text-rose-200 hover:bg-rose-500/25' : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'}`}
+                                onClick={handleLogout}
+                            >
+                                <LogOut size={14} />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
                     <header className={`rounded-2xl border px-4 py-3 backdrop-blur ${isDark ? 'border-orange-400/30 bg-slate-900/75' : 'border-slate-200 bg-white/90'}`}>
                         <div className="flex flex-wrap items-center justify-between gap-3">
                             <div>

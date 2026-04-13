@@ -27,6 +27,19 @@ body {
     min-height: 100vh;
 }
 
+html,
+body,
+#root {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+img,
+video,
+iframe {
+    max-width: 100%;
+}
+
 h1,
 h2,
 h3 {
@@ -404,6 +417,33 @@ h3 {
 
     .faculty-actions {
         flex-wrap: wrap;
+    }
+
+    .blogspot-page-wrap {
+        padding-top: 64px;
+        padding-bottom: 78px;
+    }
+
+    .blogspot-page-wrap article {
+        padding: 1rem !important;
+    }
+
+    .blogspot-page-wrap article h3 {
+        font-size: 1.45rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .blogspot-page-wrap article p {
+        overflow-wrap: anywhere;
+        line-height: 1.65 !important;
+    }
+
+    .blogspot-page-wrap [class*='min-h-[calc(100vh-13rem)]'] {
+        min-height: auto !important;
+    }
+
+    #achievements-page table {
+        font-size: 0.82rem;
     }
 }
 

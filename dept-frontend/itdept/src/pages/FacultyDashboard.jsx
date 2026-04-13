@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     BarChart3,
     Bookmark,
@@ -34,12 +34,22 @@ const sidebarItems = [
 
 export default function FacultyDashboard() {
     const navigate = useNavigate();
+    const location = useLocation();
     const session = useMemo(() => getAuthSession(), []);
 
     const [theme, setTheme] = useState(() => localStorage.getItem('blogspot-theme') || 'light');
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(
-        () => localStorage.getItem('blogspot-sidebar-collapsed') === 'true',
-    );
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+        const storedValue = localStorage.getItem('blogspot-sidebar-collapsed');
+        if (storedValue === 'true' || storedValue === 'false') {
+            return storedValue === 'true';
+        }
+
+        if (typeof window !== 'undefined') {
+            return window.innerWidth < 1024;
+        }
+
+        return false;
+    });
 
     const [activeView, setActiveView] = useState('dashboard');
     const [title, setTitle] = useState('');
@@ -58,6 +68,22 @@ export default function FacultyDashboard() {
             return [];
         }
     });
+    const likedBlogsStorageKey = `liked-blogs-${session?.email || 'default'}`;
+    const readLikedBlogIds = useCallback(() => {
+        try {
+            const stored = localStorage.getItem(likedBlogsStorageKey);
+            if (!stored) {
+                return [];
+            }
+
+            const parsed = JSON.parse(stored);
+            return Array.isArray(parsed) ? parsed.map((id) => Number(id)).filter(Number.isFinite) : [];
+        } catch {
+            return [];
+        }
+    }, [likedBlogsStorageKey]);
+
+    const [likedBlogIds, setLikedBlogIds] = useState(() => readLikedBlogIds());
 
     const [stats, setStats] = useState({
         totalBlogsCreated: 0,
@@ -77,6 +103,7 @@ export default function FacultyDashboard() {
 
     const token = session?.token;
     const isDark = theme === 'dark';
+    const sharedView = useMemo(() => new URLSearchParams(location.search).get('view'), [location.search]);
 
     const displayName = useMemo(() => {
         const fromSession = (session?.name || '').trim();
@@ -102,6 +129,21 @@ export default function FacultyDashboard() {
     useEffect(() => {
         localStorage.setItem('blogspot-sidebar-collapsed', String(isSidebarCollapsed));
     }, [isSidebarCollapsed]);
+
+    useEffect(() => {
+        localStorage.setItem(likedBlogsStorageKey, JSON.stringify(likedBlogIds));
+    }, [likedBlogIds, likedBlogsStorageKey]);
+
+    const applyLikedState = useCallback((blogs, likedIds) => {
+        const likedIdSet = likedIds instanceof Set ? likedIds : new Set(likedIds);
+
+        return Array.isArray(blogs)
+            ? blogs.map((blog) => ({
+                ...blog,
+                likedByCurrentUser: likedIdSet.has(Number(blog.id)),
+            }))
+            : [];
+    }, []);
 
     const sortBlogs = useCallback((blogs, sort) => {
         const cloned = [...blogs];
@@ -139,9 +181,11 @@ export default function FacultyDashboard() {
                 })
                 .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
 
-            setAllBlogs(sortBlogs(allBlogsData, selectedSort));
-            setFeed(sortBlogs(approvedFeed, selectedSort));
-            setMyBlogs(myBlogsData);
+            const likedIdSet = new Set(readLikedBlogIds());
+
+            setAllBlogs(applyLikedState(sortBlogs(allBlogsData, selectedSort), likedIdSet));
+            setFeed(applyLikedState(sortBlogs(approvedFeed, selectedSort), likedIdSet));
+            setMyBlogs(applyLikedState(myBlogsData, likedIdSet));
 
             const likesReceived = myBlogsData.reduce((sum, blog) => sum + Number(blog.likesCount || 0), 0);
             const avgLikes = myBlogsData.length ? likesReceived / myBlogsData.length : 0;
@@ -166,11 +210,19 @@ export default function FacultyDashboard() {
         } finally {
             setLoading(false);
         }
-    }, [token, navigate, sortBlogs, displayName]);
+    }, [applyLikedState, displayName, navigate, readLikedBlogIds, sortBlogs, token]);
 
     useEffect(() => {
         loadData(feedSort);
     }, [feedSort, loadData]);
+
+    useEffect(() => {
+        const allowedViews = new Set(['create', 'dashboard', 'all', 'mine', 'saved', 'stats', 'handle']);
+
+        if (sharedView && allowedViews.has(sharedView)) {
+            setActiveView(sharedView);
+        }
+    }, [sharedView]);
 
     const recentBlogs = useMemo(() => {
         return [...myBlogs]
@@ -251,12 +303,45 @@ export default function FacultyDashboard() {
         setLikingBlogId(blogId);
         setError('');
 
+        const currentLikedIds = new Set(readLikedBlogIds());
+        const isCurrentlyLiked = currentLikedIds.has(Number(blogId));
+        const likeDelta = isCurrentlyLiked ? -1 : 1;
+
         try {
             await apiRequest(`/api/blogs/${blogId}/like`, {
                 method: 'POST',
                 token,
             });
-            await loadData(feedSort);
+
+            setLikedBlogIds((prev) => {
+                const next = new Set(prev.map((id) => Number(id)));
+                if (isCurrentlyLiked) {
+                    next.delete(Number(blogId));
+                } else {
+                    next.add(Number(blogId));
+                }
+                return Array.from(next);
+            });
+            const toggleUpdater = (blog) => {
+                if (Number(blog.id) !== Number(blogId)) {
+                    return blog;
+                }
+
+                return {
+                    ...blog,
+                    likesCount: Math.max(0, Number(blog.likesCount || 0) + likeDelta),
+                    likedByCurrentUser: !isCurrentlyLiked,
+                };
+            };
+
+            setAllBlogs((prev) => prev.map(toggleUpdater));
+            setFeed((prev) => prev.map(toggleUpdater));
+            setMyBlogs((prev) => prev.map(toggleUpdater));
+            setSavedBlogs((prev) => prev.map(toggleUpdater));
+            setStats((prev) => ({
+                ...prev,
+                totalLikesGiven: Math.max(0, Number(prev.totalLikesGiven || 0) + likeDelta),
+            }));
         } catch (err) {
             setError(err.message || 'Unable to update like.');
         } finally {
@@ -436,15 +521,15 @@ export default function FacultyDashboard() {
 
     return (
         <main
-            className={`h-screen overflow-hidden bg-gradient-to-b p-4 ${isDark ? 'from-slate-700 to-slate-800 text-slate-100' : 'from-slate-100 to-slate-200 text-slate-900'
+            className={`blogspot-dashboard-shell min-h-screen h-auto overflow-visible bg-gradient-to-b p-2 sm:p-4 md:h-screen md:overflow-hidden ${isDark ? 'from-slate-700 to-slate-800 text-slate-100' : 'from-slate-100 to-slate-200 text-slate-900'
                 }`}
         >
             <div
-                className={`grid h-full grid-cols-1 gap-4 transition-all duration-300 ${isSidebarCollapsed ? 'md:grid-cols-[88px_minmax(0,1fr)]' : 'md:grid-cols-[280px_minmax(0,1fr)]'
+                className={`grid grid-cols-1 gap-4 transition-all duration-300 md:h-full ${isSidebarCollapsed ? 'md:grid-cols-[88px_minmax(0,1fr)]' : 'md:grid-cols-[280px_minmax(0,1fr)]'
                     }`}
             >
                 <aside
-                    className={`rounded-2xl border p-3 shadow-lg backdrop-blur ${isDark ? 'border-orange-400/30 bg-slate-900/80' : 'border-slate-200 bg-white/90'
+                    className={`hidden rounded-2xl border p-3 shadow-lg backdrop-blur md:block ${isDark ? 'border-orange-400/30 bg-slate-900/80' : 'border-slate-200 bg-white/90'
                         }`}
                 >
                     <div className="flex h-full flex-col justify-between">
@@ -457,7 +542,7 @@ export default function FacultyDashboard() {
                                     >
                                         Faculty Space
                                     </p>
-                                    <h2 className="mt-1 text-2xl font-extrabold">BlogSpot</h2>
+                                    <h2 className="mt-1 text-2xl font-extrabold pb-5">BlogSpot</h2>
                                     <p className={`mt-1 text-sm font-semibold ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                                         {displayName}
                                     </p>
@@ -499,7 +584,7 @@ export default function FacultyDashboard() {
                                 </button>
                             ) : null}
 
-                            <nav className="grid gap-2">
+                            <nav className="grid gap-5">
                                 {sidebarItems.map((item) => {
                                     const Icon = item.icon;
                                     const isActive = activeView === item.key;
@@ -508,7 +593,7 @@ export default function FacultyDashboard() {
                                         <button
                                             key={item.key}
                                             type="button"
-                                            className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold transition ${isSidebarCollapsed ? 'justify-center md:px-2' : 'justify-start'
+                                            className={`inline-flex items-center gap-4 rounded-xl border px-4 py-3 text-sm font-bold transition ${isSidebarCollapsed ? 'justify-center md:px-2' : 'justify-start'
                                                 } ${isActive
                                                     ? 'border-orange-500 bg-gradient-to-r from-orange-500 to-orange-600 text-orange-50'
                                                     : isDark
@@ -541,7 +626,24 @@ export default function FacultyDashboard() {
                     </div>
                 </aside>
 
-                <section className="min-h-0 space-y-3 overflow-y-auto pr-1">
+                <section className="min-h-0 space-y-3 overflow-visible pr-0 md:overflow-y-auto md:pr-1">
+                    <div className={`rounded-2xl border px-4 py-3 md:hidden ${isDark ? 'border-orange-400/30 bg-slate-900/75' : 'border-slate-200 bg-white/90'}`}>
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <p className={`text-sm font-extrabold ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{displayName}</p>
+                                <p className={`mt-0.5 text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{session?.email}</p>
+                            </div>
+                            <button
+                                type="button"
+                                className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-bold transition ${isDark ? 'border-rose-400/50 bg-rose-500/15 text-rose-200 hover:bg-rose-500/25' : 'border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100'}`}
+                                onClick={handleLogout}
+                            >
+                                <LogOut size={14} />
+                                Logout
+                            </button>
+                        </div>
+                    </div>
+
                     <header
                         className={`rounded-2xl border px-4 py-3 backdrop-blur ${isDark ? 'border-orange-400/30 bg-slate-900/75' : 'border-slate-200 bg-white/90'
                             }`}

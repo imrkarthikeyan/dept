@@ -66,7 +66,7 @@ function Dashboard() {
                 }}
             />
 
-            <div className="relative z-10 flex min-h-screen items-center px-6 lg:px-16">
+            <div className="relative z-10 flex min-h-screen items-center px-4 sm:px-6 lg:px-16">
                 <div className="grid w-full max-w-7xl mx-auto grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] items-center gap-12">
 
                     <div className="space-y-6 animate-fadeInUp">
@@ -80,7 +80,7 @@ function Dashboard() {
                                 Department of
                             </span>
 
-                            <span className="block whitespace-nowrap bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl 2xl:text-6xl leading-tight pr-1">
+                            <span className="block bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent font-extrabold text-3xl sm:text-4xl md:text-5xl lg:text-4xl xl:text-5xl 2xl:text-6xl leading-tight pr-1">
                                 Information Technology
                             </span>
                         </h1>
@@ -117,11 +117,11 @@ function Dashboard() {
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-4 pt-4">
+                        <div className="flex flex-wrap gap-3 pt-4 sm:gap-4">
                             <button
                                 type="button"
                                 onClick={handleExploreOpportunities}
-                                className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-3 text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/40"
+                                className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-2.5 text-sm font-bold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-blue-500/40 sm:px-8 sm:py-3"
                             >
                                 Explore Opportunities
                             </button>
@@ -129,7 +129,7 @@ function Dashboard() {
                             <button
                                 type="button"
                                 onClick={handleLoginPortal}
-                                className="rounded-lg border border-white/70 px-8 py-3 text-sm font-bold backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:scale-105"
+                                className="rounded-lg border border-white/70 px-5 py-2.5 text-sm font-bold backdrop-blur-sm transition-all duration-300 hover:bg-white/10 hover:scale-105 sm:px-8 sm:py-3"
                             >
                                 Login Portal
                             </button>

@@ -162,6 +162,7 @@ export default function BlogSpotDashboard({
         : 'border-slate-200 bg-white';
 
     const selectedBlog = [...trendingBlogs, ...recentBlogs].find((blog) => blog.id === selectedBlogId) || null;
+    const isSelectedBlogLiked = Boolean(selectedBlog?.likedByCurrentUser);
 
     if (selectedBlog) {
         return (
@@ -199,10 +200,12 @@ export default function BlogSpotDashboard({
                             type="button"
                             onClick={() => handleLike(selectedBlog.id)}
                             disabled={likingBlogId === selectedBlog.id}
-                            className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${isDark ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50'}`}
+                            className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${isSelectedBlogLiked
+                                ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700')
+                                : (isDark ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
                         >
-                            <Heart size={14} />
-                            {likingBlogId === selectedBlog.id ? 'Updating...' : `Like ${selectedBlog.likesCount || 0}`}
+                            <Heart size={14} fill={isSelectedBlogLiked ? 'currentColor' : 'none'} />
+                            {likingBlogId === selectedBlog.id ? 'Updating...' : isSelectedBlogLiked ? 'Liked' : `Like ${selectedBlog.likesCount || 0}`}
                         </button>
 
                         <button
@@ -466,12 +469,12 @@ export default function BlogSpotDashboard({
                                     type="button"
                                     onClick={() => handleLike(blog.id)}
                                     disabled={likingBlogId === blog.id}
-                                    className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${isDark
-                                        ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400'
-                                        : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50'}`}
+                                    className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${blog.likedByCurrentUser
+                                        ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700')
+                                        : (isDark ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
                                 >
-                                    <Heart size={14} />
-                                    {likingBlogId === blog.id ? 'Updating...' : `Like ${blog.likesCount || 0}`}
+                                    <Heart size={14} fill={blog.likedByCurrentUser ? 'currentColor' : 'none'} />
+                                    {likingBlogId === blog.id ? 'Updating...' : blog.likedByCurrentUser ? 'Liked' : `Like ${blog.likesCount || 0}`}
                                 </button>
 
                                 <button
@@ -599,12 +602,12 @@ export default function BlogSpotDashboard({
                                     type="button"
                                     onClick={() => handleLike(blog.id)}
                                     disabled={likingBlogId === blog.id}
-                                    className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${isDark
-                                        ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400'
-                                        : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50'}`}
+                                    className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${blog.likedByCurrentUser
+                                        ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700')
+                                        : (isDark ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
                                 >
-                                    <Heart size={14} />
-                                    {likingBlogId === blog.id ? 'Updating...' : `Like ${blog.likesCount || 0}`}
+                                    <Heart size={14} fill={blog.likedByCurrentUser ? 'currentColor' : 'none'} />
+                                    {likingBlogId === blog.id ? 'Updating...' : blog.likedByCurrentUser ? 'Liked' : `Like ${blog.likesCount || 0}`}
                                 </button>
 
                                 <button

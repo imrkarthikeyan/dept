@@ -20,12 +20,12 @@ function Footer() {
         <footer className="relative bg-gradient-to-b from-slate-700 to-slate-800 pt-20 text-gray-200">
             <div className="absolute left-0 top-0 h-[3px] w-full bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600" />
 
-            <div className="mx-auto grid max-w-8xl gap-12 px-6 md:grid-cols-2 lg:grid-cols-4">
-                <div className="flex items-start gap-4">
-                    <img src={logo} alt="KSRCT" className="h-auto w-40 object-contain" />
-                    <div className="h-20 w-[2px] bg-orange-400/40" />
+            <div className="mx-auto grid max-w-8xl gap-10 px-4 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
+                <div className="flex flex-col items-start gap-4 sm:flex-row">
+                    <img src={logo} alt="KSRCT" className="h-auto w-32 object-contain sm:w-40" />
+                    <div className="hidden h-20 w-[2px] bg-orange-400/40 sm:block" />
                     <div>
-                        <h3 className="mb-2 text-xl font-bold text-white">Department of Information Technology</h3>
+                        <h3 className="mb-2 text-lg font-bold text-white sm:text-xl">Department of Information Technology</h3>
                         <p className="text-sm leading-relaxed text-gray-300">
                             Nurturing future IT professionals through innovation, strong academics, and
                             industry-ready learning.
