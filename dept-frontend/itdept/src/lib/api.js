@@ -1,6 +1,13 @@
 import { getAuthSession } from './auth';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://dept-jwt6.onrender.com';
+const DEFAULT_LOCAL_API = 'http://localhost:8080';
+const DEFAULT_REMOTE_API = 'https://dept-jwt6.onrender.com';
+
+const isLocalHost =
+    typeof window !== 'undefined'
+    && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (isLocalHost ? DEFAULT_LOCAL_API : DEFAULT_REMOTE_API);
 
 export async function apiRequest(path, options = {}) {
     const { token, method = 'GET', body } = options;
@@ -21,7 +28,7 @@ export async function apiRequest(path, options = {}) {
             body: body ? JSON.stringify(body) : undefined,
         });
     } catch {
-        const error = new Error('Cannot reach backend API at https://dept-jwt6.onrender.com.');
+        const error = new Error(`Cannot reach backend API at ${API_BASE_URL}.`);
         error.status = 502;
         throw error;
     }
@@ -39,7 +46,7 @@ export async function apiRequest(path, options = {}) {
 
     if (!response.ok) {
         if (response.status === 502) {
-            const error = new Error('Backend gateway error. Ensure https://dept-jwt6.onrender.com is reachable.');
+            const error = new Error(`Backend gateway error. Ensure ${API_BASE_URL} is reachable.`);
             error.status = 502;
             throw error;
         }

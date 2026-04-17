@@ -29,6 +29,8 @@ const sidebarItems = [
     { key: 'stats', label: 'Stats', icon: BarChart3 },
 ];
 
+const ANALYSIS_MIN_WORDS = 40;
+
 export default function StudentBlogspot() {
     const navigate = useNavigate();
     const location = useLocation();
@@ -104,6 +106,9 @@ export default function StudentBlogspot() {
 
     const [loading, setLoading] = useState(true);
     const [posting, setPosting] = useState(false);
+    const [analysis, setAnalysis] = useState(null);
+    const [analyzing, setAnalyzing] = useState(false);
+    const [analysisError, setAnalysisError] = useState('');
     const [likingBlogId, setLikingBlogId] = useState(null);
     const [error, setError] = useState('');
     const [trendingBlogs, setTrendingBlogs] = useState([]);
@@ -119,6 +124,55 @@ export default function StudentBlogspot() {
 
     const token = session?.token;
     const isDark = theme === 'dark';
+
+    const countWords = useCallback((text) => {
+        if (!text || !text.trim()) {
+            return 0;
+        }
+
+        return text.trim().split(/\s+/).filter(Boolean).length;
+    }, []);
+
+    const analyzeDraft = useCallback(async (draftTitle, draftContent, options = {}) => {
+        const { showLoading = true } = options;
+        if (!token) {
+            return null;
+        }
+
+        const trimmedTitle = (draftTitle || '').trim();
+        const trimmedContent = (draftContent || '').trim();
+        if (countWords(trimmedContent) < ANALYSIS_MIN_WORDS) {
+            setAnalysis(null);
+            setAnalysisError('');
+            return null;
+        }
+
+        if (showLoading) {
+            setAnalyzing(true);
+        }
+        setAnalysisError('');
+
+        try {
+            const response = await apiRequest('/api/blogs/analyze', {
+                method: 'POST',
+                token,
+                body: {
+                    title: trimmedTitle,
+                    content: trimmedContent,
+                },
+            });
+            setAnalysis(response || null);
+            return response || null;
+        } catch (err) {
+            const message = err?.message || 'Unable to analyze content right now.';
+            setAnalysisError(message);
+            return null;
+        } finally {
+            if (showLoading) {
+                setAnalyzing(false);
+            }
+        }
+    }, [countWords, token]);
 
     const displayName = useMemo(() => {
         const fromSession = (session?.name || '').trim();
@@ -274,6 +328,18 @@ export default function StudentBlogspot() {
         }
     }, [sharedBlogId, sharedView]);
 
+    useEffect(() => {
+        if (activeView !== 'create') {
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            analyzeDraft(title, content);
+        }, 650);
+
+        return () => clearTimeout(timer);
+    }, [activeView, analyzeDraft, content, title]);
+
     const recentBlogs = useMemo(() => {
         return [...feed]
             .sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime())
@@ -286,10 +352,28 @@ export default function StudentBlogspot() {
             return;
         }
 
+        if (countWords(content) < ANALYSIS_MIN_WORDS) {
+            setError(`Write at least ${ANALYSIS_MIN_WORDS} words for analysis before publishing.`);
+            return;
+        }
+
         setPosting(true);
         setError('');
+        setAnalyzing(true);
 
         try {
+            const latestAnalysis = await analyzeDraft(title, content, { showLoading: false });
+
+            if (!latestAnalysis) {
+                setError('Unable to analyze content. Please try again.');
+                return;
+            }
+
+            if (!latestAnalysis.publishAllowed) {
+                setError(latestAnalysis.message || 'Publishing blocked by AI/plagiarism policy.');
+                return;
+            }
+
             await apiRequest('/api/blogs/create', {
                 method: 'POST',
                 token,
@@ -298,14 +382,39 @@ export default function StudentBlogspot() {
 
             setTitle('');
             setContent('');
+            setAnalysis(null);
+            setAnalysisError('');
             setActiveView('mine');
             await loadData(feedSort);
         } catch (err) {
             setError(err.message || 'Unable to create blog.');
         } finally {
+            setAnalyzing(false);
             setPosting(false);
         }
     }
+
+    const publishBlockReason = useMemo(() => {
+        if (countWords(content) < ANALYSIS_MIN_WORDS) {
+            return `Write at least ${ANALYSIS_MIN_WORDS} words for reliable analysis.`;
+        }
+
+        if (analysisError) {
+            return analysisError;
+        }
+
+        if (analysis && analysis.publishAllowed === false) {
+            return analysis.message || 'Publishing blocked by AI/plagiarism policy.';
+        }
+
+        if (!analysis) {
+            return 'Waiting for live analysis...';
+        }
+
+        return '';
+    }, [analysis, analysisError, content, countWords]);
+
+    const publishDisabled = posting || analyzing || Boolean(publishBlockReason);
 
     async function handleLike(blogId) {
         setLikingBlogId(blogId);
@@ -426,6 +535,12 @@ export default function StudentBlogspot() {
                     setContent={setContent}
                     posting={posting}
                     handlePost={handlePost}
+                    analysis={analysis}
+                    analyzing={analyzing}
+                    analysisError={analysisError}
+                    publishDisabled={publishDisabled}
+                    publishBlockReason={publishBlockReason}
+                    minimumWords={ANALYSIS_MIN_WORDS}
                     theme={theme}
                 />
             );

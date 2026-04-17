@@ -2,9 +2,12 @@ package com.itdept.it.controller;
 
 import com.itdept.it.dto.BlogRequest;
 import com.itdept.it.dto.BlogResponse;
+import com.itdept.it.dto.BlogContentAnalysisRequest;
+import com.itdept.it.dto.BlogContentAnalysisResponse;
 import com.itdept.it.dto.CommentRequest;
 import com.itdept.it.dto.CommentResponse;
 import com.itdept.it.dto.LikeResponse;
+import com.itdept.it.service.BlogContentAnalysisService;
 import com.itdept.it.service.BlogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,8 +25,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/blogs")
 public class BlogController {
+
     @Autowired
     private BlogService blogService;
+
+    @Autowired
+    private BlogContentAnalysisService blogContentAnalysisService;
+
+    @PostMapping("/analyze")
+    public BlogContentAnalysisResponse analyzeBlogContent(@RequestBody BlogContentAnalysisRequest request) {
+        String title = request != null ? request.getTitle() : null;
+        String content = request != null ? request.getContent() : null;
+        return blogContentAnalysisService.analyzeContent(title, content);
+    }
 
     @PostMapping("/create")
     public BlogResponse createBlog(@RequestBody BlogRequest request) {

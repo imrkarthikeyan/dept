@@ -69,6 +69,7 @@ public class SecurityConfig {
                 // student endpoints - must come before /api/blogs/* rules
                 .requestMatchers("/api/student/**").hasAnyAuthority("STUDENT", "ROLE_STUDENT")
                 // blog creation - any authenticated user
+                .requestMatchers(HttpMethod.POST, "/api/blogs/analyze").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/blogs/create").authenticated()
                 // faculty/admin only - blog management
                 .requestMatchers(HttpMethod.GET, "/api/blogs/all/faculty").hasAnyAuthority("STAFF", "ADMIN", "ROLE_STAFF", "ROLE_ADMIN")

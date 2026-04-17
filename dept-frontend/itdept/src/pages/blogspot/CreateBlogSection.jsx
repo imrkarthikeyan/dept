@@ -5,6 +5,12 @@ export default function CreateBlogSection({
     setContent,
     posting,
     handlePost,
+    analysis,
+    analyzing,
+    analysisError,
+    publishDisabled,
+    publishBlockReason,
+    minimumWords = 40,
     theme = 'light',
 }) {
     const isDark = theme === 'dark';
@@ -21,6 +27,32 @@ export default function CreateBlogSection({
     const previewClass = isDark
         ? 'border-slate-700 bg-slate-950/60 text-slate-200'
         : 'border-slate-200 bg-slate-50 text-slate-700';
+
+    const scoreCardClass = isDark
+        ? 'border-slate-700 bg-slate-900/70'
+        : 'border-slate-200 bg-white/80';
+
+    const wordCount = content.trim() ? content.trim().split(/\s+/).filter(Boolean).length : 0;
+    const hasAnalysis = analysis && Number.isFinite(Number(analysis.aiContentPercent));
+
+    function renderMeter(label, value, colorClass) {
+        const safeValue = Math.max(0, Math.min(100, Number(value || 0)));
+
+        return (
+            <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-semibold">
+                    <span className={subtleClass}>{label}</span>
+                    <span>{safeValue.toFixed(2)}%</span>
+                </div>
+                <div className={`h-2 rounded-full ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`}>
+                    <div
+                        className={`h-2 rounded-full transition-all ${colorClass}`}
+                        style={{ width: `${safeValue}%` }}
+                    />
+                </div>
+            </div>
+        );
+    }
 
     return (
         <section className={`min-h-[calc(100vh-13rem)] rounded-3xl border p-5 shadow-lg ${panelClass}`}>
@@ -70,10 +102,40 @@ export default function CreateBlogSection({
                             <button
                                 type="submit"
                                 className="inline-flex items-center rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-2.5 text-sm font-bold text-orange-50 shadow transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
-                                disabled={posting}
+                                disabled={posting || publishDisabled}
                             >
                                 {posting ? 'Posting...' : 'Publish Blog'}
                             </button>
+                        </div>
+
+                        <div className={`rounded-xl border p-3 text-sm ${scoreCardClass}`}>
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="font-bold">Live AI & Plagiarism Check</p>
+                                <p className={`text-xs font-semibold ${subtleClass}`}>Words: {wordCount}</p>
+                            </div>
+
+                            {analyzing ? <p className={`mt-2 text-xs ${subtleClass}`}>Analyzing content...</p> : null}
+                            {analysisError ? <p className="mt-2 text-xs font-semibold text-red-500">{analysisError}</p> : null}
+
+                            {hasAnalysis ? (
+                                <div className="mt-3 space-y-3">
+                                    {renderMeter('AI Content', analysis.aiContentPercent, 'bg-red-500')}
+                                    {renderMeter('Plagiarism', analysis.plagiarismPercent, 'bg-amber-500')}
+                                    {renderMeter('Human Content', analysis.humanContentPercent, 'bg-emerald-500')}
+
+                                    <p className={`text-xs font-semibold ${analysis.publishAllowed ? 'text-emerald-500' : 'text-red-500'}`}>
+                                        {analysis.message}
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className={`mt-2 text-xs ${subtleClass}`}>
+                                    Write at least {minimumWords} words to calculate AI, plagiarism, and human content scores.
+                                </p>
+                            )}
+
+                            {publishDisabled && publishBlockReason ? (
+                                <p className="mt-2 text-xs font-semibold text-red-500">{publishBlockReason}</p>
+                            ) : null}
                         </div>
                     </form>
                 </div>

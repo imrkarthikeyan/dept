@@ -2,6 +2,7 @@ package com.itdept.it.service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import com.itdept.it.dto.BlogContentAnalysisResponse;
 import com.itdept.it.dto.BlogRequest;
 import com.itdept.it.dto.BlogResponse;
 import com.itdept.it.dto.CommentRequest;
@@ -17,8 +18,9 @@ import com.itdept.it.repository.CommentRepository;
 import com.itdept.it.repository.LikeRepository;
 import com.itdept.it.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,8 +40,23 @@ public class BlogService {
     @Autowired
     private CommentRepository commentRepository;
 
+    @Autowired
+    private BlogContentAnalysisService blogContentAnalysisService;
+
     // Create blog with streak check
     public BlogResponse createBlog(BlogRequest request, String userEmail) {
+        String safeTitle = request != null && request.getTitle() != null ? request.getTitle().trim() : "";
+        String safeContent = request != null && request.getContent() != null ? request.getContent().trim() : "";
+
+        if (safeTitle.isBlank() || safeContent.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Title and content are required.");
+        }
+
+        BlogContentAnalysisResponse analysis = blogContentAnalysisService.analyzeContent(safeTitle, safeContent);
+        if (!blogContentAnalysisService.isPublishAllowed(analysis)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, analysis.getMessage());
+        }
+
         User author = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -66,8 +83,8 @@ public class BlogService {
         userRepository.save(author);
 
         Blog blog = new Blog();
-        blog.setTitle(request.getTitle());
-        blog.setContent(request.getContent());
+        blog.setTitle(safeTitle);
+        blog.setContent(safeContent);
         blog.setAuthor(author);
         blog.setDate(today);
 
