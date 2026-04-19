@@ -59,9 +59,9 @@ export default function MyBlogsSection({
         : 'border-slate-200 bg-white/95 text-slate-900';
 
     const statusClass = {
-        approved: isDark ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-200' : 'border-emerald-300 bg-emerald-50 text-emerald-700',
-        pending: isDark ? 'border-amber-400/40 bg-amber-500/20 text-amber-200' : 'border-amber-300 bg-amber-50 text-amber-700',
-        rejected: isDark ? 'border-rose-400/40 bg-rose-500/20 text-rose-200' : 'border-rose-300 bg-rose-50 text-rose-700',
+        approved: isDark ? 'border-emerald-400/40 bg-emerald-500/20 text-emerald-500' : 'border-emerald-300 bg-emerald-50 text-emerald-700',
+        pending: isDark ? 'border-amber-400/40 bg-amber-500/20 text-amber-500' : 'border-amber-300 bg-amber-50 text-orange-700',
+        rejected: isDark ? 'border-rose-400/40 bg-rose-500/20 text-rose-500' : 'border-rose-300 bg-rose-50 text-rose-700',
     };
 
     const selectedBlog = useMemo(
@@ -206,7 +206,7 @@ export default function MyBlogsSection({
                             type="button"
                             onClick={() => handleLike(selectedBlog.id)}
                             disabled={Number(likingBlogId) === Number(selectedBlog.id)}
-                            className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${isSelectedBlogLiked ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700') : (isDark ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
+                            className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${isSelectedBlogLiked ? (isDark ? 'border-orange-400 bg-orange-100 text-orange-700' : 'border-orange-300 bg-orange-50 text-orange-700') : (isDark ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
                         >
                             <Heart size={14} fill={isSelectedBlogLiked ? 'currentColor' : 'none'} />
                             {Number(likingBlogId) === Number(selectedBlog.id) ? 'Updating...' : isSelectedBlogLiked ? 'Liked' : `Like ${selectedBlog.likesCount || 0}`}
@@ -393,7 +393,7 @@ export default function MyBlogsSection({
                                 onClick={() => handleLike(blog.id)}
                                 disabled={Number(likingBlogId) === Number(blog.id)}
                                 className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${blog.likedByCurrentUser
-                                    ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700')
+                                    ? (isDark ? 'border-orange-400 bg-orange-100 text-orange-700' : 'border-orange-300 bg-orange-50 text-orange-700')
                                     : (isDark ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
                             >
                                 <Heart size={14} fill={blog.likedByCurrentUser ? 'currentColor' : 'none'} />

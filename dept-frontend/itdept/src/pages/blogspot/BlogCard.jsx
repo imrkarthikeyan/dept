@@ -56,7 +56,7 @@ export default function BlogCard({
                     {showLike ? (
                         <button
                             type="button"
-                            className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${isLiked ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700') : (isDark ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-300 hover:bg-orange-50')}`}
+                            className={`inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm font-semibold transition ${isLiked ? (isDark ? 'border-orange-400 bg-orange-100 text-orange-700' : 'border-orange-300 bg-orange-50 text-orange-700') : (isDark ? 'border-slate-600 bg-slate-800 text-slate-100 hover:border-orange-400' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-300 hover:bg-orange-50')}`}
                             onClick={() => onLike(blog.id)}
                             disabled={likeLoading}
                         >
