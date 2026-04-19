@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
     BarChart3,
@@ -21,8 +21,8 @@ import SavedBlogsSection from './blogspot/SavedBlogsSection';
 import Stats from './blogspot/Stats';
 
 const sidebarItems = [
-    { key: 'create', label: 'Create Blog', icon: SquarePen },
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { key: 'create', label: 'Create Blog', icon: SquarePen },
     { key: 'all', label: 'All Blogs', icon: ScrollText },
     { key: 'mine', label: 'My Blogs', icon: PencilLine },
     { key: 'saved', label: 'Saved Blogs', icon: Bookmark },
@@ -112,6 +112,7 @@ export default function StudentBlogspot() {
     const [likingBlogId, setLikingBlogId] = useState(null);
     const [error, setError] = useState('');
     const [trendingBlogs, setTrendingBlogs] = useState([]);
+    const pendingLikeRequestsRef = useRef(new Set());
 
     const sharedBlogId = useMemo(() => {
         const blogId = Number(new URLSearchParams(location.search).get('blogId'));
@@ -417,69 +418,85 @@ export default function StudentBlogspot() {
     const publishDisabled = posting || analyzing || Boolean(publishBlockReason);
 
     async function handleLike(blogId) {
-        setLikingBlogId(blogId);
+        const normalizedBlogId = Number(blogId);
+        if (!Number.isFinite(normalizedBlogId)) {
+            return;
+        }
+
+        if (pendingLikeRequestsRef.current.has(normalizedBlogId)) {
+            return;
+        }
+
+        pendingLikeRequestsRef.current.add(normalizedBlogId);
+        setLikingBlogId(normalizedBlogId);
         setError('');
 
-        const currentLikedIds = new Set(readLikedBlogIds());
-        const isCurrentlyLiked = currentLikedIds.has(Number(blogId));
+        const isCurrentlyLiked = likedBlogIds.some((id) => Number(id) === normalizedBlogId);
         const likeDelta = isCurrentlyLiked ? -1 : 1;
+        const sourceBlog = feed.find((blog) => Number(blog.id) === normalizedBlogId)
+            || myBlogs.find((blog) => Number(blog.id) === normalizedBlogId)
+            || savedBlogs.find((blog) => Number(blog.id) === normalizedBlogId)
+            || likedBlogs.find((blog) => Number(blog.id) === normalizedBlogId);
 
-        const patchLikedBlog = (blog) => {
-            if (Number(blog.id) !== Number(blogId)) {
+        const patchLikedBlog = (blog, nextLiked, delta) => {
+            if (Number(blog.id) !== normalizedBlogId) {
                 return blog;
             }
 
             return {
                 ...blog,
-                likesCount: Math.max(0, Number(blog.likesCount || 0) + likeDelta),
-                likedByCurrentUser: !isCurrentlyLiked,
+                likesCount: Math.max(0, Number(blog.likesCount || 0) + delta),
+                likedByCurrentUser: nextLiked,
             };
         };
 
-        try {
-            await apiRequest(`/api/blogs/${blogId}/like`, {
-                method: 'POST',
-                token,
-            });
-
+        const applyLikeState = (nextLiked, delta) => {
             setLikedBlogIds((prev) => {
                 const next = new Set(prev.map((id) => Number(id)));
-                if (isCurrentlyLiked) {
-                    next.delete(Number(blogId));
+                if (nextLiked) {
+                    next.add(normalizedBlogId);
                 } else {
-                    next.add(Number(blogId));
+                    next.delete(normalizedBlogId);
                 }
                 return Array.from(next);
             });
-            setFeed((prev) => prev.map(patchLikedBlog));
-            setMyBlogs((prev) => prev.map(patchLikedBlog));
-            setSavedBlogs((prev) => prev.map(patchLikedBlog));
-            setTrendingBlogs((prev) => prev.map(patchLikedBlog));
+
+            setFeed((prev) => prev.map((blog) => patchLikedBlog(blog, nextLiked, delta)));
+            setMyBlogs((prev) => prev.map((blog) => patchLikedBlog(blog, nextLiked, delta)));
+            setSavedBlogs((prev) => prev.map((blog) => patchLikedBlog(blog, nextLiked, delta)));
+            setTrendingBlogs((prev) => prev.map((blog) => patchLikedBlog(blog, nextLiked, delta)));
             setLikedBlogs((prev) => {
-                if (isCurrentlyLiked) {
-                    return prev.filter((blog) => Number(blog.id) !== Number(blogId));
+                if (!nextLiked) {
+                    return prev.filter((blog) => Number(blog.id) !== normalizedBlogId);
                 }
 
-                const existing = prev.find((blog) => Number(blog.id) === Number(blogId));
-
+                const existing = prev.find((blog) => Number(blog.id) === normalizedBlogId);
                 if (existing) {
-                    return prev.map(patchLikedBlog);
+                    return prev.map((blog) => patchLikedBlog(blog, nextLiked, delta));
                 }
 
-                const sourceBlog = feed.find((blog) => Number(blog.id) === Number(blogId))
-                    || myBlogs.find((blog) => Number(blog.id) === Number(blogId))
-                    || savedBlogs.find((blog) => Number(blog.id) === Number(blogId));
-
-                return sourceBlog ? [...prev, patchLikedBlog(sourceBlog)] : prev;
+                return sourceBlog ? [...prev, patchLikedBlog(sourceBlog, nextLiked, delta)] : prev;
             });
+
             setStats((prev) => ({
                 ...prev,
-                totalLikesGiven: Math.max(0, Number(prev.totalLikesGiven || 0) + likeDelta),
+                totalLikesGiven: Math.max(0, Number(prev.totalLikesGiven || 0) + delta),
             }));
+        };
+
+        applyLikeState(!isCurrentlyLiked, likeDelta);
+
+        try {
+            await apiRequest(`/api/blogs/${normalizedBlogId}/like`, {
+                method: 'POST',
+                token,
+            });
         } catch (err) {
+            applyLikeState(isCurrentlyLiked, -likeDelta);
             setError(err.message || 'Unable to update like.');
         } finally {
-            setLikingBlogId(null);
+            pendingLikeRequestsRef.current.delete(normalizedBlogId);
+            setLikingBlogId((prev) => (Number(prev) === normalizedBlogId ? null : prev));
         }
     }
 

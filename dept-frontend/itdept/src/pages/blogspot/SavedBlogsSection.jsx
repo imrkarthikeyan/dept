@@ -218,11 +218,11 @@ export default function SavedBlogsSection({
                         <button
                             type="button"
                             onClick={() => handleLike(selectedBlog.id)}
-                            disabled={likingBlogId === selectedBlog.id}
+                            disabled={Number(likingBlogId) === Number(selectedBlog.id)}
                             className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${isSelectedBlogLiked ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700') : (isDark ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
                         >
                             <Heart size={14} fill={isSelectedBlogLiked ? 'currentColor' : 'none'} />
-                            {likingBlogId === selectedBlog.id ? 'Updating...' : isSelectedBlogLiked ? 'Liked' : `Like ${selectedBlog.likesCount || 0}`}
+                            {Number(likingBlogId) === Number(selectedBlog.id) ? 'Updating...' : isSelectedBlogLiked ? 'Liked' : `Like ${selectedBlog.likesCount || 0}`}
                         </button>
 
                         <button
@@ -392,13 +392,13 @@ export default function SavedBlogsSection({
                             <button
                                 type="button"
                                 onClick={() => handleLike(blog.id)}
-                                disabled={likingBlogId === blog.id}
+                                disabled={Number(likingBlogId) === Number(blog.id)}
                                 className={`inline-flex items-center gap-1 rounded-md border px-4 py-1.5 text-sm font-semibold transition hover:-translate-y-0.5 ${blog.likedByCurrentUser
                                     ? (isDark ? 'border-orange-400 bg-orange-500/20 text-orange-200' : 'border-orange-300 bg-orange-50 text-orange-700')
                                     : (isDark ? 'border-gray-300 bg-slate-100 text-slate-900 hover:border-orange-400' : 'border-slate-300 bg-white text-slate-700 hover:border-orange-300 hover:bg-slate-50')}`}
                             >
                                 <Heart size={14} fill={blog.likedByCurrentUser ? 'currentColor' : 'none'} />
-                                {likingBlogId === blog.id ? 'Updating...' : blog.likedByCurrentUser ? 'Liked' : `Like ${blog.likesCount || 0}`}
+                                {Number(likingBlogId) === Number(blog.id) ? 'Updating...' : blog.likedByCurrentUser ? 'Liked' : `Like ${blog.likesCount || 0}`}
                             </button>
 
                             <button
